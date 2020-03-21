@@ -1,7 +1,6 @@
 package sniff
 
 import (
-	"learn/flowFeature"
 	"time"
 )
 

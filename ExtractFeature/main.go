@@ -1,7 +1,7 @@
 package main
 
 import (
-	"learn/sniff"
+	"FlowDetection/sniff"
 	"log"
 )
 

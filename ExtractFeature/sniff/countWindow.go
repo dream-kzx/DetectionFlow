@@ -1,8 +1,6 @@
 package sniff
 
-import (
-	"learn/flowFeature"
-)
+import "FlowDetection/flowFeature"
 
 const WindowSize = 256
 

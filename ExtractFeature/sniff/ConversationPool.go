@@ -1,9 +1,9 @@
 package sniff
 
 import (
+	"FlowDetection/baseUtil"
+	"FlowDetection/flowFeature"
 	"github.com/google/gopacket/layers"
-	"learn/baseUtil"
-	"learn/flowFeature"
 	"log"
 	"sync"
 )

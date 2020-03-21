@@ -1,4 +1,4 @@
-module learn
+module FlowDetection
 
 go 1.13
 

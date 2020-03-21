@@ -1,6 +1,6 @@
 package sniff
 
-import "learn/flowFeature"
+import "FlowDetection/flowFeature"
 
 type queueType = *flowFeature.TCPBaseFeature
 

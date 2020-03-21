@@ -1,10 +1,10 @@
 package sniff
 
 import (
+	"FlowDetection/baseUtil"
+	"FlowDetection/config"
+	"FlowDetection/flowFeature"
 	"github.com/google/gopacket/layers"
-	"learn/baseUtil"
-	"learn/config"
-	"learn/flowFeature"
 )
 
 type ICMPConversation struct {
