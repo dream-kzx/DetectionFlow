@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package CallPredict;
+
+service PredictFlow{
+    rpc predict(Request) returns (Response){}
+}
+
+
+message Request {
+    uint32 duration = 1;
+    string protocolType = 2;
+    uint32 service = 3;
+    uint32 flag = 4;
+    uint32 srcBytes = 5;
+    uint32 dstBytes = 6;
+    uint32 land = 7;
+    uint32 wrongFragment = 8;
+    uint32 urgent = 9;
+
+    uint32 host = 10;
+    uint32 numFailedLogins = 11;
+    uint32 loggedIn = 12;
+    uint32 numCompromised = 13;
+    uint32 rootShell = 14;
+    uint32 suAttempted = 15;
+    uint32 numRoot = 16;
+    uint32 numFileCreations = 17;
+    uint32 numShells = 18;
+    uint32 numAccessFiles = 19;
+    uint32 numOutboundCmds = 20;
+    uint32 isHotLogin = 21;
+    uint32 isGuestLogin = 22;
+
+    uint32 count = 23;
+    uint32 srvCount = 24;
+    float sErrorRate = 25;
+    float srvSErrorRate = 26;
+    float rErrorRate = 27;
+    float srvRErrorRate = 28;
+    float sameSrvRate = 29;
+    float diffSrvRate = 30;
+    float srvDiffHostRate = 31;
+
+    uint32 dstHostCount =32;
+    uint32 dstHostSrvCount  =33;
+    float dstHostSameSrvRate =34;
+    float dstHostDiffSrvRate  =35;
+    float dstHostSameSrcPortRate =36;
+    float dstHostSrvDiffHostRate=37;
+    float dstHostSErrorRate    =38;
+    float dstHostSrvSErrorRate  =39;
+    float dstHostRErrorRate    =40;
+    float dstHostSrvRErrorRate  =41;
+}
+
+message Response{
+    uint32 label = 1;
+}
