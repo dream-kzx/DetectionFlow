@@ -1,13 +1,15 @@
 package sniff
 
 import (
+	"FlowDetection/flowFeature"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"log"
-	"time"
 )
 
 const (
@@ -26,7 +28,7 @@ type Sniffer struct {
 	conversationPool *ConversationPool
 }
 
-func NewSniffer() (*Sniffer, error) {
+func NewSniffer(featureChan chan *flowFeature.FlowFeature) (*Sniffer, error) {
 	devices, err := pcap.FindAllDevs()
 	if err != nil {
 		return nil, err
@@ -34,7 +36,7 @@ func NewSniffer() (*Sniffer, error) {
 	return &Sniffer{
 		Devices:          devices,
 		FragmentList:     ip4defrag.NewIPv4Defragmenter(),
-		conversationPool: NewConversationPool(),
+		conversationPool: NewConversationPool(featureChan),
 	}, nil
 }
 
