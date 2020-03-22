@@ -2,6 +2,6 @@ matplotlib==3.2.0
 numpy==1.18.1
 grpcio==1.27.2
 joblib==0.14.1
-grpc==0.3-19
+# grpc==0.3-19
 protobuf==3.11.3
 scikit_learn==0.22.2.post1
