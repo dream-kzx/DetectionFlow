@@ -1,6 +1,7 @@
 package sniff
 
 import (
+	"FlowDetection/CallPredict"
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"github.com/google/gopacket/layers"
@@ -46,7 +47,7 @@ func (tPool *ConversationPool) addTCPPacket(tcp layers.TCP,
 
 	conversation, ok := mapList[converHash]
 	if ok {
-		log.Println(conversation.ProtocolType, "(conversation.go 68)")
+		log.Println(conversation.ProtocolType, "(conversationPool.go 68)")
 		if result := conversation.addPacket(tcp, connMsg); result != nil {
 			tPool.mutex.Lock()
 			mapList[converHash] = result
@@ -90,6 +91,8 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 func (tPool *ConversationPool) checkResultChan() {
 	wf := baseUtil.MyWriteFile{}
 	wf.OpenFile("feature.csv")
+	write := false
+	predictFlow := CallPredict.NewPredictFlow(":50051")
 	for {
 		select {
 		case msg := <-tPool.resultChan:
@@ -110,13 +113,31 @@ func (tPool *ConversationPool) checkResultChan() {
 					tPool.countWindow.AddConversation(resultChan.baseFeature, feature)
 					tPool.timeWindow.AddConversation(resultChan.baseFeature, feature)
 					//feature.Print()
-					wf.Write(feature.FeatureToString())
+					if write{
+						wf.Write(feature.FeatureToString())
+					}
+					label := predictFlow.Predict(feature)
+					log.Println("该攻击类型为：",baseUtil.AttackTypeList[label])
+					if label==7{
+						log.Println(feature.SrcPort,"   ",feature.SrcIP)
+						log.Println(feature.FeatureToString())
+
+					}
 				}
 			case *flowFeature.FlowFeature:
 				if resultChan := msg.(*flowFeature.TCPBaseFeature); resultChan != nil {
 					tPool.countWindow.AddConversation(resultChan, feature)
 					tPool.timeWindow.AddConversation(resultChan, feature)
-					wf.Write(feature.FeatureToString())
+
+					if write{
+						wf.Write(feature.FeatureToString())
+					}
+					label := predictFlow.Predict(feature)
+					log.Println("该攻击类型为：",baseUtil.AttackTypeList[label])
+					if label==7{
+						log.Println(feature.SrcPort,"   ",feature.SrcIP)
+						log.Println(feature.FeatureToString())
+					}
 				}
 			}
 
