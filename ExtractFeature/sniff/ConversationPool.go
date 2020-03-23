@@ -1,12 +1,12 @@
 package sniff
 
 import (
-	"FlowDetection/CallPredict"
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
-	"github.com/google/gopacket/layers"
 	"log"
 	"sync"
+
+	"github.com/google/gopacket/layers"
 )
 
 type ResultChan struct {
@@ -29,6 +29,7 @@ type ConversationPool struct {
 	countWindow *CountWindow
 	timeWindow  *TimeWindow
 	resultChan  chan interface{}
+	featureChan chan *flowFeature.FlowFeature
 }
 
 func (tPool *ConversationPool) addTCPPacket(tcp layers.TCP,
@@ -89,10 +90,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 }
 
 func (tPool *ConversationPool) checkResultChan() {
-	wf := baseUtil.MyWriteFile{}
-	wf.OpenFile("feature.csv")
-	write := false
-	predictFlow := CallPredict.NewPredictFlow(":50051")
+
 	for {
 		select {
 		case msg := <-tPool.resultChan:
@@ -108,36 +106,20 @@ func (tPool *ConversationPool) checkResultChan() {
 						tPool.quoteMap[resultChan.key]--
 					}
 					tPool.mutex.Unlock()
-					//resultChan.baseFeature.Print()
+					// resultChan.baseFeature.Print()
 					feature.SetTCPBaseFeature(resultChan.baseFeature)
 					tPool.countWindow.AddConversation(resultChan.baseFeature, feature)
 					tPool.timeWindow.AddConversation(resultChan.baseFeature, feature)
-					//feature.Print()
-					if write{
-						wf.Write(feature.FeatureToString())
-					}
-					label := predictFlow.Predict(feature)
-					log.Println("该攻击类型为：",baseUtil.AttackTypeList[label])
-					if label==7{
-						log.Println(feature.SrcPort,"   ",feature.SrcIP)
-						log.Println(feature.FeatureToString())
-
-					}
+					tPool.featureChan <- feature
+					// feature.Print()
 				}
 			case *flowFeature.FlowFeature:
 				if resultChan := msg.(*flowFeature.TCPBaseFeature); resultChan != nil {
 					tPool.countWindow.AddConversation(resultChan, feature)
 					tPool.timeWindow.AddConversation(resultChan, feature)
+					tPool.featureChan <- feature
+					// feature.Print()
 
-					if write{
-						wf.Write(feature.FeatureToString())
-					}
-					label := predictFlow.Predict(feature)
-					log.Println("该攻击类型为：",baseUtil.AttackTypeList[label])
-					if label==7{
-						log.Println(feature.SrcPort,"   ",feature.SrcIP)
-						log.Println(feature.FeatureToString())
-					}
 				}
 			}
 
@@ -145,7 +127,7 @@ func (tPool *ConversationPool) checkResultChan() {
 	}
 }
 
-func NewConversationPool() *ConversationPool {
+func NewConversationPool(featureChan chan *flowFeature.FlowFeature) *ConversationPool {
 	m := make(map[uint64]*TCPConversation)
 	return &ConversationPool{
 		TCPList:     m,
@@ -153,5 +135,6 @@ func NewConversationPool() *ConversationPool {
 		quoteMap:    make(map[uint64]int),
 		countWindow: NewCountWindow(),
 		timeWindow:  NewTimeWindow(),
+		featureChan: featureChan,
 	}
 }
