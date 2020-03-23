@@ -3,13 +3,12 @@ package sniff
 import (
 	"FlowDetection/flowFeature"
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	"log"
+	"time"
 )
 
 const (

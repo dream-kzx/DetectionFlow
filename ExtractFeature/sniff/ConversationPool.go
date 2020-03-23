@@ -3,10 +3,9 @@ package sniff
 import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
+	"github.com/google/gopacket/layers"
 	"log"
 	"sync"
-
-	"github.com/google/gopacket/layers"
 )
 
 type ResultChan struct {

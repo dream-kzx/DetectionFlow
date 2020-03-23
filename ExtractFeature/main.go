@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	// device      string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	device      string = "ens33"
+	device      string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	//device      string = "ens33"
 	promiscuous bool   = false //是否开启混杂模式
 )
 
@@ -49,7 +49,6 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	for {
 		select {
 		case feature := <-featureChan:
-
 			feature.Print()
 
 			if write {
