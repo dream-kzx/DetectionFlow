@@ -122,7 +122,7 @@ func (t *TimeWindow) calculateFeature(tcpBaseFeature *flowFeature.TCPBaseFeature
 	srvCount := uint(0)
 	srvSErrorCount := uint(0)
 	srvRErrorCount := uint(0)
-	sameService := t.sameServiceMap[service]
+	sameService,ok := t.sameServiceMap[service]
 	if ok {
 		srvCount = sameService.Count
 		srvSErrorCount = sameService.SErrorCount

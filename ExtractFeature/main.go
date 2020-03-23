@@ -15,6 +15,11 @@ const (
 	promiscuous bool   = false //是否开启混杂模式
 )
 
+// func main(){
+// 	i := 1
+// 	fmt.Println("test debug!",i)
+// }
+
 func main() {
 	featureChan := make(chan *flowFeature.FlowFeature, 5)
 
