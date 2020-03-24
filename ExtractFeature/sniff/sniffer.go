@@ -3,12 +3,15 @@ package sniff
 import (
 	"FlowDetection/flowFeature"
 	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"log"
-	"time"
+	"github.com/google/gopacket/pcapgo"
 )
 
 const (
@@ -76,17 +79,27 @@ func (sniffer *Sniffer) StartSniffer() {
 
 	go sniffer.conversationPool.checkResultChan()
 
+	f, _ := os.Create("test.pcap")
+	w := pcapgo.NewWriter(f)
+	w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
+	defer f.Close()
+
 	packetCount := 0
 	packetSource := gopacket.NewPacketSource(sniffer.handle, sniffer.handle.LinkType())
 	packets := packetSource.Packets()
 
+	i := 0
 	//ticker := time.Tick(time.Minute)
 	for {
 		select {
 		case packet := <-packets:
+			if i<20{
+				log.Println("packget: ",i)
+				i++
+			}
+			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
 			sniffer.disposePacket(packet)
 			//case <-ticker:
-
 		}
 		packetCount++
 	}
@@ -145,6 +158,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 
 	switch ipPacket.Protocol {
 	case layers.IPProtocolICMPv4:
+		log.Println("icmp (sniffer.go 148)")
 		p := gopacket.NewPacket(payload, layers.LayerTypeICMPv4, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeICMPv4); layer != nil {
 			if icmp, ok := layer.(*layers.ICMPv4); ok {
@@ -152,6 +166,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 			}
 		}
 	case layers.IPProtocolTCP:
+		log.Println("tcp (sniffer.go 156)")
 		p := gopacket.NewPacket(payload, layers.LayerTypeTCP, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeTCP); layer != nil {
 			if tcp, ok := layer.(*layers.TCP); ok {
@@ -160,6 +175,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		}
 
 	case layers.IPProtocolUDP:
+		log.Println("UDP (sniffer.go 165)")
 		p := gopacket.NewPacket(payload, layers.LayerTypeUDP, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeUDP); layer != nil {
 			if udp := layer.(*layers.UDP); ok {

@@ -4,7 +4,7 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"github.com/google/gopacket/layers"
-	"log"
+	// "log"
 	"sync"
 )
 
@@ -47,7 +47,7 @@ func (tPool *ConversationPool) addTCPPacket(tcp layers.TCP,
 
 	conversation, ok := mapList[converHash]
 	if ok {
-		log.Println(conversation.ProtocolType, "(conversationPool.go 68)")
+		// log.Println(conversation.ProtocolType, "(conversationPool.go 68)")
 		if result := conversation.addPacket(tcp, connMsg); result != nil {
 			tPool.mutex.Lock()
 			mapList[converHash] = result
