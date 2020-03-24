@@ -41,19 +41,17 @@ type Conversation struct {
 func GetTCPServiceType(fiveTuple baseUtil.FiveTuple) int {
 	srcPort := uint16(0)
 	dstPort := uint16(0)
-	if fiveTuple.DstIP == config.SERVERIP{
+	if fiveTuple.DstIP == config.SERVERIP {
 		srcPort = fiveTuple.SrcPort
 		dstPort = fiveTuple.DstPort
-	}else{
-		srcPort =fiveTuple.DstPort
+	} else {
+		srcPort = fiveTuple.DstPort
 		dstPort = fiveTuple.SrcPort
 	}
 
 	if srcPort == 20 {
 		return baseUtil.SRV_FTP_DATA
 	}
-
-	dstPort := fiveTuple.DstPort
 
 	switch dstPort {
 	case 194, 529, 2218, 6665, 6666, 6668, 6669, 6697: // Internet Relay Chat via TLS/SSL
@@ -250,9 +248,9 @@ func GetTCPServiceType(fiveTuple baseUtil.FiveTuple) int {
 func GetUDPServiceType(fiveTuple baseUtil.FiveTuple) int {
 
 	dstPort := uint16(0)
-	if fiveTuple.DstIP == config.SERVERIP{
+	if fiveTuple.DstIP == config.SERVERIP {
 		dstPort = fiveTuple.DstPort
-	}else{
+	} else {
 		dstPort = fiveTuple.SrcPort
 	}
 
