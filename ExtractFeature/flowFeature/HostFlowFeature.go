@@ -3,16 +3,16 @@ package flowFeature
 import "strconv"
 
 type HostFlowFeature struct {
-	DstHostCount           uint16
-	DstHostSrvCount        uint16
-	DstHostSameSrvRate     float32
-	DstHostDiffSrvRate     float32
-	DstHostSameSrcPortRate float32
-	DstHostSrvDiffHostRate float32
-	DstHostSErrorRate      float32
-	DstHostSrvSErrorRate   float32
-	DstHostRErrorRate      float32
-	DstHostSrvRErrorRate   float32
+	DstHostCount           uint16	//32/41
+	DstHostSrvCount        uint16	//33/41 Probe
+	DstHostSameSrvRate     float32	//34/41 Probe
+	DstHostDiffSrvRate     float32	//35/41 Probe
+	DstHostSameSrcPortRate float32	//36/41
+	DstHostSrvDiffHostRate float32	//37/41
+	DstHostSErrorRate      float32	//38/41
+	DstHostSrvSErrorRate   float32	//39/41 Dos
+	DstHostRErrorRate      float32	//40/41
+	DstHostSrvRErrorRate   float32	//41/41
 }
 
 func (h HostFlowFeature) FeatureToString() string {

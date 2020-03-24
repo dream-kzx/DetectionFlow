@@ -3,15 +3,15 @@ package flowFeature
 import "strconv"
 
 type TimeFlowFeature struct {
-	Count           uint16
-	SrvCount        uint16
-	SErrorRate      float32
-	SrvSErrorRate   float32
-	RErrorRate      float32
-	SrvRErrorRate   float32
-	SameSrvRate     float32
-	DiffSrvRate     float32
-	SrvDiffHostRate float32
+	Count           uint16		//23/41
+	SrvCount        uint16		//24/41
+	SErrorRate      float32		//25/41
+	SrvSErrorRate   float32		//26/41
+	RErrorRate      float32		//27/41
+	SrvRErrorRate   float32		//28/41
+	SameSrvRate     float32		//29/41  Dos Probe
+	DiffSrvRate     float32		//30/41
+	SrvDiffHostRate float32		//31/41
 }
 
 func (t TimeFlowFeature) FeatureToString() string {

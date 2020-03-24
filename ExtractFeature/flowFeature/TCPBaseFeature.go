@@ -18,15 +18,15 @@ type TCPBaseFeature struct {
 	baseUtil.FiveTuple
 	StartTime     time.Time
 	LastTime      time.Time
-	Duration      uint
-	ProtocolType  string
-	Service       uint8
-	Flag          uint8
-	SrcBytes      uint
-	DstBytes      uint
-	Land          uint8
-	WrongFragment uint8
-	Urgent        uint8
+	Duration      uint      //1/41
+	ProtocolType  string    //2/41 Probe
+	Service       uint8		//3/41 Dos
+	Flag          uint8		//4/41 Dos
+	SrcBytes      uint		//5/41 Dos Probe
+	DstBytes      uint		//6/41
+	Land          uint8		//7/41
+	WrongFragment uint8		//8/41
+	Urgent        uint8		//9/41
 }
 
 func (t TCPBaseFeature) Print() {

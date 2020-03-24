@@ -50,13 +50,16 @@ class FlowFeature:
         self.dstHostSrvRErrorRate = request.dstHostSrvRErrorRate
 
     def toNpArray(self):
-        array = [[self.duration, self.protocolType, self.service, self.flag, self.srcBytes, self.dstBytes, self.land,
-                 self.wrongFragment, self.urgent, self.host, self.numFailedLogins, self.loggedIn, self.numCompromised,
-                 self.rootShell, self.suAttempted, self.numRoot, self.numFileCreations, self.numShells,
-                 self.numAccessFiles, self.numOutboundCmds, self.isHotLogin, self.isGuestLogin, self.count,
-                 self.srvCount, self.sErrorRate, self.srvSErrorRate, self.rErrorRate, self.srvRErrorRate,
-                 self.sameSrvRate, self.diffSrvRate, self.srvDiffHostRate, self.dstHostCount, self.dstHostSrvCount,
-                 self.dstHostSameSrvRate, self.dstHostDiffSrvRate, self.dstHostSameSrcPortRate,
-                 self.dstHostSrvDiffHostRate, self.dstHostSErrorRate, self.dstHostSrvSErrorRate, self.dstHostRErrorRate,
-                 self.dstHostSrvRErrorRate]]
+        # array = [[self.duration, self.protocolType, self.service, self.flag, self.srcBytes, self.dstBytes, self.land,
+        #          self.wrongFragment, self.urgent, self.host, self.numFailedLogins, self.loggedIn, self.numCompromised,
+        #          self.rootShell, self.suAttempted, self.numRoot, self.numFileCreations, self.numShells,
+        #          self.numAccessFiles, self.numOutboundCmds, self.isHotLogin, self.isGuestLogin, self.count,
+        #          self.srvCount, self.sErrorRate, self.srvSErrorRate, self.rErrorRate, self.srvRErrorRate,
+        #          self.sameSrvRate, self.diffSrvRate, self.srvDiffHostRate, self.dstHostCount, self.dstHostSrvCount,
+        #          self.dstHostSameSrvRate, self.dstHostDiffSrvRate, self.dstHostSameSrcPortRate,
+        #          self.dstHostSrvDiffHostRate, self.dstHostSErrorRate, self.dstHostSrvSErrorRate, self.dstHostRErrorRate,
+        #          self.dstHostSrvRErrorRate]]
+        array = [[self.protocolType, self.service, self.flag, self.srcBytes,
+                  self.sameSrvRate, self.dstHostSrvCount, self.dstHostSameSrvRate,
+                  self.dstHostDiffSrvRate, self.dstHostSrvSErrorRate]]
         return np.array(array)
