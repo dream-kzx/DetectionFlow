@@ -45,6 +45,7 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 				t.Land = 0
 			}
 
+			t.updateState(tcp, t.SrcIP)
 			//记录TCP连接的Service
 			t.Service = GetTCPServiceType(fiveTuple)
 		} else { //如果是旧的连接则，
@@ -63,8 +64,13 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 				newTCPConversation.Land = 0
 			}
 
+			t.updateState(tcp, t.SrcIP)
 			//记录TCP连接的Service
 			newTCPConversation.Service = GetTCPServiceType(fiveTuple)
+
+			t.back = true
+			go t.checkTimeout()
+
 			return newTCPConversation
 		}
 

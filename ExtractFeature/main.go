@@ -7,6 +7,7 @@ import (
 	"FlowDetection/sniff"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 const (
@@ -28,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go PredictFLowInFeature(featureChan)
+	// go PredictFLowInFeature(featureChan)
 
 	err = sniffer.SetSnifferInterface(device, promiscuous)
 	if err != nil {
@@ -43,7 +44,7 @@ func main() {
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	wf := baseUtil.MyWriteFile{}
 	wf.OpenFile("feature.csv")
-	write := false
+	write := true
 	predictFlow := CallPredict.NewPredictFlow(":50051")
 
 	attackList := []string{"normal", "DOS", "PROBE"}
@@ -53,17 +54,34 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 		case feature := <-featureChan:
 			// feature.Print()
 
-			if write {
-				wf.Write(feature.FeatureToString())
-			}
-
 			label := predictFlow.Predict(feature)
+			if write {
+				data := feature.FeatureToString()
+				data += attackList[label] + ","
+				data += ipToString(feature.SrcIP)
+				data += strconv.Itoa(int(feature.SrcPort)) + ","
+				data += ipToString(feature.DstIP)
+				data += strconv.Itoa(int(feature.DstPort))
+				data += "\n"
+				log.Println(data)
+				wf.Write(data)
+			}
 			log.Println("该攻击类型为：", attackList[label])
 
 			log.Println(feature.SrcPort, "   ", feature.SrcIP)
+			log.Println(feature.DstPort, "   ", feature.DstIP)
 			log.Println(feature.FeatureToString())
 
 		}
 
 	}
+}
+
+func ipToString(ip [4]byte) string {
+	data := ""
+	data += strconv.Itoa(int(ip[0])) + "."
+	data += strconv.Itoa(int(ip[1])) + "."
+	data += strconv.Itoa(int(ip[2])) + "."
+	data += strconv.Itoa(int(ip[3])) + ","
+	return data
 }

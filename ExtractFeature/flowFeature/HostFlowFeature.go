@@ -24,7 +24,7 @@ func (h HostFlowFeature) FeatureToString() string {
 	// data += strconv.FormatFloat(float64(h.DstHostSameSrcPortRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostSrvDiffHostRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostSErrorRate), 'f', 6, 64) + ","
-	data += strconv.FormatFloat(float64(h.DstHostSrvSErrorRate), 'f', 6, 64) + "\n"
+	data += strconv.FormatFloat(float64(h.DstHostSrvSErrorRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostRErrorRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostSrvRErrorRate), 'f', 6, 64) + "\n"
 	return data

@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 	"time"
-
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/google/gopacket/pcapgo"
+	"FlowDetection/baseUtil"
 )
 
 const (
@@ -79,6 +79,10 @@ func (sniffer *Sniffer) StartSniffer() {
 
 	go sniffer.conversationPool.checkResultChan()
 
+	if baseUtil.CheckFileIsExist("test.pcap") {
+		_ = os.Remove("test.pcap")
+	}
+
 	f, _ := os.Create("test.pcap")
 	w := pcapgo.NewWriter(f)
 	w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
@@ -133,7 +137,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		copy(srcIp[:4], ipv4Layer.SrcIP)
 		copy(dstIp[:4], ipv4Layer.DstIP)
 		now := &ConnMsg{
-			srcIP: srcIp,
+			srcIP: srcIp,                         
 			dstIP: dstIp,
 			Start: packet.Metadata().Timestamp,
 			Last:  packet.Metadata().Timestamp,
