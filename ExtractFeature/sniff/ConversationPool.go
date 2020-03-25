@@ -3,7 +3,11 @@ package sniff
 import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
+	"log"
+
+	// "github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
+
 	// "log"
 	"sync"
 )
@@ -31,6 +35,40 @@ type ConversationPool struct {
 	featureChan chan *flowFeature.FlowFeature
 }
 
+// func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
+// 	//判断流量包网络层的类型，如果为ipv4，则继续执行
+// 	ipv4 := packet.Layer(layers.LayerTypeIPv4)
+// 	if ipv4 == nil {
+// 		log.Println("(Sniffer.disposePacket) packet parsing fail!")
+// 		log.Println(packet.LinkLayer().LayerType())
+// 		return
+// 	}
+// 	//包的类型转换
+// 	ipv4Layer, ok := ipv4.(*layers.IPv4)
+// 	if !ok {
+// 		log.Println("cast failed!")
+// 		return
+// 	}
+// 	conMsgs := map[uint16]*ConnMsg{}
+// 	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
+// 	//通过IP数据包中，每个分片的ID是唯一标识的
+// 	t, ok := conMsgs[ipv4Layer.Id]
+// 	if ok {
+// 		t.Last = packet.Metadata().Timestamp
+// 	} else {
+// 		var srcIp, dstIp [4]byte
+// 		copy(srcIp[:4], ipv4Layer.SrcIP)
+// 		copy(dstIp[:4], ipv4Layer.DstIP)
+// 		now := &ConnMsg{
+// 			srcIP: srcIp,
+// 			dstIP: dstIp,
+// 			Start: packet.Metadata().Timestamp,
+// 			Last:  packet.Metadata().Timestamp,
+// 		}
+// 		conMsgs[ipv4Layer.Id] = now
+// 	}
+// }
+
 func (tPool *ConversationPool) addTCPPacket(tcp layers.TCP,
 	connMsg ConnMsg) {
 	mapList := tPool.TCPList
@@ -44,6 +82,9 @@ func (tPool *ConversationPool) addTCPPacket(tcp layers.TCP,
 	}
 
 	converHash := fiveTuple.FastHash()
+	if fiveTuple.SrcPort!=22 && fiveTuple.DstPort!=22{
+		log.Println("test")
+	}
 
 	conversation, ok := mapList[converHash]
 	if ok {

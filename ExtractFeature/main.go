@@ -3,6 +3,7 @@ package main
 import (
 	"FlowDetection/CallPredict"
 	"FlowDetection/baseUtil"
+	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"FlowDetection/sniff"
 	"fmt"
@@ -29,7 +30,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// go PredictFLowInFeature(featureChan)
+	if !config.DEBUG{
+		go PredictFLowInFeature(featureChan)
+	}
 
 	err = sniffer.SetSnifferInterface(device, promiscuous)
 	if err != nil {

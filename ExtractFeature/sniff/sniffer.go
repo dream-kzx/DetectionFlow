@@ -1,17 +1,19 @@
 package sniff
 
 import (
+	"FlowDetection/baseUtil"
+	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"fmt"
 	"log"
 	"os"
 	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/google/gopacket/pcapgo"
-	"FlowDetection/baseUtil"
 )
 
 const (
@@ -28,6 +30,7 @@ type Sniffer struct {
 	handle           *pcap.Handle
 	FragmentList     *ip4defrag.IPv4Defragmenter
 	conversationPool *ConversationPool
+	connMsg          map[uint16]*ConnMsg
 }
 
 func NewSniffer(featureChan chan *flowFeature.FlowFeature) (*Sniffer, error) {
@@ -39,6 +42,7 @@ func NewSniffer(featureChan chan *flowFeature.FlowFeature) (*Sniffer, error) {
 		Devices:          devices,
 		FragmentList:     ip4defrag.NewIPv4Defragmenter(),
 		conversationPool: NewConversationPool(featureChan),
+		connMsg:          make(map[uint16]*ConnMsg),
 	}, nil
 }
 
@@ -77,7 +81,10 @@ type ConnMsg struct {
 func (sniffer *Sniffer) StartSniffer() {
 	defer sniffer.handle.Close()
 
-	go sniffer.conversationPool.checkResultChan()
+	if !config.DEBUG {
+		go sniffer.conversationPool.checkResultChan()
+
+	}
 
 	if baseUtil.CheckFileIsExist("test.pcap") {
 		_ = os.Remove("test.pcap")
@@ -97,8 +104,8 @@ func (sniffer *Sniffer) StartSniffer() {
 	for {
 		select {
 		case packet := <-packets:
-			if i<20{
-				log.Println("packget: ",i)
+			if i < 20 {
+				log.Println("packget: ", i)
 				i++
 			}
 			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
@@ -112,8 +119,6 @@ func (sniffer *Sniffer) StartSniffer() {
 }
 
 func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
-	conMsgs := map[uint16]*ConnMsg{}
-
 	ipv4 := packet.Layer(layers.LayerTypeIPv4)
 	if ipv4 == nil {
 		log.Println("(Sniffer.disposePacket) packet parsing fail!")
@@ -129,7 +134,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 
 	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
 	//通过IP数据包中，每个分片的ID是唯一标识的
-	t, ok := conMsgs[ipv4Layer.Id]
+	t, ok := sniffer.connMsg[ipv4Layer.Id]
 	if ok {
 		t.Last = packet.Metadata().Timestamp
 	} else {
@@ -137,17 +142,17 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		copy(srcIp[:4], ipv4Layer.SrcIP)
 		copy(dstIp[:4], ipv4Layer.DstIP)
 		now := &ConnMsg{
-			srcIP: srcIp,                         
+			srcIP: srcIp,
 			dstIP: dstIp,
 			Start: packet.Metadata().Timestamp,
 			Last:  packet.Metadata().Timestamp,
 		}
-		conMsgs[ipv4Layer.Id] = now
+		sniffer.connMsg[ipv4Layer.Id] = now
 	}
 
 	//对ip分片进行头部校验
 	if !IPCheckSum(ipv4Layer.Contents[0:20]) {
-		conMsgs[ipv4Layer.Id].wrong++
+		sniffer.connMsg[ipv4Layer.Id].wrong++
 	}
 
 	//检测是否需要ip分片重组
@@ -166,7 +171,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		p := gopacket.NewPacket(payload, layers.LayerTypeICMPv4, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeICMPv4); layer != nil {
 			if icmp, ok := layer.(*layers.ICMPv4); ok {
-				sniffer.conversationPool.addICMPPacket(*icmp, *conMsgs[ipv4Layer.Id])
+				sniffer.conversationPool.addICMPPacket(*icmp, *sniffer.connMsg[ipv4Layer.Id])
 			}
 		}
 	case layers.IPProtocolTCP:
@@ -174,7 +179,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		p := gopacket.NewPacket(payload, layers.LayerTypeTCP, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeTCP); layer != nil {
 			if tcp, ok := layer.(*layers.TCP); ok {
-				sniffer.conversationPool.addTCPPacket(*tcp, *conMsgs[ipv4Layer.Id])
+				sniffer.conversationPool.addTCPPacket(*tcp, *sniffer.connMsg[ipv4Layer.Id])
 			}
 		}
 
@@ -183,7 +188,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		p := gopacket.NewPacket(payload, layers.LayerTypeUDP, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeUDP); layer != nil {
 			if udp := layer.(*layers.UDP); ok {
-				sniffer.conversationPool.addUDPPacket(*udp, *conMsgs[ipv4Layer.Id])
+				sniffer.conversationPool.addUDPPacket(*udp, *sniffer.connMsg[ipv4Layer.Id])
 			}
 		}
 
@@ -191,6 +196,6 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 		return
 	}
 
-	delete(conMsgs, ipv4Layer.Id)
+	delete(sniffer.connMsg, ipv4Layer.Id)
 
 }

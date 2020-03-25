@@ -4,9 +4,11 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
+	"log"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"time"
 )
 
 type TCPConversation struct {
@@ -33,6 +35,10 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 		ProtocolType: t.ProtocolType,
 	}
 
+	if t.SrcPort!=22 && t.DstPort!=22{
+		log.Println("111")
+	}
+
 	//连接请求syn=1，ack=0
 	if tcp.SYN && !tcp.ACK {
 		if t.Flag == 0 { //如果是新创建的连接
@@ -51,7 +57,9 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 		} else { //如果是旧的连接则，
 
 			//提取特征,并加入结果信道
-			t.extractBaseFeature()
+			if !config.DEBUG{
+				t.extractBaseFeature()
+			}
 
 			//创建新的连接，并返回
 			newTCPConversation := NewTCPConversation(fiveTuple, msg.Start,
@@ -69,7 +77,9 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 			newTCPConversation.Service = GetTCPServiceType(fiveTuple)
 
 			t.back = true
-			go t.checkTimeout()
+			if !config.DEBUG{
+				go t.checkTimeout() ///////////////////////////////////////////////
+			}
 
 			return newTCPConversation
 		}
@@ -111,7 +121,9 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 
 		if t.isFinal() {
 			//提取特征
-			t.extractBaseFeature()
+			if !config.DEBUG{
+				t.extractBaseFeature()
+			}
 
 			return nil
 		}
@@ -120,7 +132,9 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 
 	t.back = true
 
-	go t.checkTimeout() ///////////////////////////////////////////////
+	if !config.DEBUG{
+		go t.checkTimeout() ///////////////////////////////////////////////
+	}
 
 	return nil
 }
