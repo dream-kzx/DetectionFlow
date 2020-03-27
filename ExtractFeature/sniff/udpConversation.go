@@ -10,22 +10,19 @@ import (
 type UDPConversation struct {
 	Conversation
 	packetSum int
+	poolChan  chan interface{}
 }
 
-func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) *flowFeature.TCPBaseFeature {
-	fiveTuple := baseUtil.FiveTuple{
-		SrcIP:        connMsg.srcIP,
-		DstIP:        connMsg.dstIP,
-		SrcPort:      uint16(udp.SrcPort),
-		DstPort:      uint16(udp.DstPort),
-		ProtocolType: layers.IPProtocolUDP,
+func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) {
+	u.packetSum++
+
+	if u.packetSum == 1 {
+		u.StartTime = connMsg.Start
+		u.Service = GetUDPServiceType(u.FiveTuple)
+
+		u.Flag = baseUtil.SF
 	}
-
-	duration := connMsg.Last.Sub(connMsg.Start)
-
-	service := GetUDPServiceType(fiveTuple)
-
-	flag := baseUtil.SF
+	u.LastTime = connMsg.Last
 
 	if connMsg.dstIP == config.SERVERIP {
 		u.SrcBytes += len(udp.Payload)
@@ -43,16 +40,31 @@ func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) *flowFeatur
 
 	u.Urgent = 0
 
-	tcpBaseFeature := flowFeature.NewTcpBaseFeature(fiveTuple, uint(duration), fiveTuple.ProtocolType,
-		service, flag, u.SrcBytes, u.DstBytes, u.Land, u.WrongFragment, u.Urgent)
+	// tcpBaseFeature := flowFeature.NewTcpBaseFeature(fiveTuple, uint(duration), fiveTuple.ProtocolType,
+	// 	service, flag, u.SrcBytes, u.DstBytes, u.Land, u.WrongFragment, u.Urgent)
 
-	return tcpBaseFeature
+	// return tcpBaseFeature
 }
 
-func NewUDPConversation() *UDPConversation {
+func (u *UDPConversation) ExtractBaseFeature() {
+
+	duration := uint(u.LastTime.Sub(u.StartTime))
+
+	tcpFeature := flowFeature.NewTcpBaseFeature(u.FiveTuple, duration, u.FiveTuple.ProtocolType,
+		u.Service, u.Flag, u.SrcBytes, u.DstBytes, u.Land, u.WrongFragment, u.Urgent)
+	tcpFeature.StartTime = u.StartTime
+	tcpFeature.LastTime = u.LastTime
+
+	u.poolChan <- tcpFeature
+
+}
+
+func NewUDPConversation(tuple baseUtil.FiveTuple, poolChan chan interface{}) *UDPConversation {
 	return &UDPConversation{
-		Conversation: Conversation{},
-		packetSum:    0,
+		Conversation: Conversation{
+			FiveTuple: tuple,
+		},
+		poolChan:  poolChan,
+		packetSum: 0,
 	}
 }
-

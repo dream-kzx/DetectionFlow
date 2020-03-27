@@ -18,7 +18,7 @@ import (
 
 const (
 	snapshotLen uint32 = 1526
-	timeout            = 30 * time.Second
+	timeout            = 1 * time.Second
 )
 
 //usage:
@@ -83,13 +83,12 @@ func (sniffer *Sniffer) StartSniffer() {
 
 	if !config.DEBUG {
 		go sniffer.conversationPool.checkResultChan()
-
 	}
 
+	//写PCAP文件
 	if baseUtil.CheckFileIsExist("test.pcap") {
 		_ = os.Remove("test.pcap")
 	}
-
 	f, _ := os.Create("test.pcap")
 	w := pcapgo.NewWriter(f)
 	w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
@@ -99,20 +98,25 @@ func (sniffer *Sniffer) StartSniffer() {
 	packetSource := gopacket.NewPacketSource(sniffer.handle, sniffer.handle.LinkType())
 	packets := packetSource.Packets()
 
-	i := 0
 	//ticker := time.Tick(time.Minute)
 	for {
 		select {
 		case packet := <-packets:
-			if i < 20 {
-				log.Println("packget: ", i)
-				i++
+			if packetCount < 20 {
+				log.Println("packget: ", packetCount)
+				packetCount++
+			}
+
+			if packetCount == 12{
+				log.Println("packget: ", packetCount)
+
 			}
 			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
-			sniffer.disposePacket(packet)
+			// sniffer.disposePacket(packet)
+			sniffer.conversationPool.DisposePacket(packet)
 			//case <-ticker:
 		}
-		packetCount++
+
 	}
 
 	fmt.Println("end")
@@ -197,5 +201,4 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 	}
 
 	delete(sniffer.connMsg, ipv4Layer.Id)
-
 }

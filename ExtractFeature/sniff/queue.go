@@ -39,6 +39,8 @@ func (q *Queue) Pop() bool {
 		return false
 	}
 
+	q.Size--
+
 	q.list = q.list[1:]
 	return true
 }

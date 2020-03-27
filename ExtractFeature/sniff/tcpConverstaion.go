@@ -4,7 +4,7 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
-	"log"
+	// "log"
 	"time"
 
 	"github.com/google/gopacket"
@@ -20,12 +20,9 @@ type TCPConversation struct {
 	back     bool             //用于在超时之后，是否返回结果
 }
 
-func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversation {
+func (t *TCPConversation) addPacket(tcp layers.TCP,
+	msg ConnMsg) (*TCPConversation,bool) {
 	//在有新的包到来时，重新计时
-	t.back = false
-	if t.timeout != nil {
-		t.timeout.Stop()
-	}
 
 	fiveTuple := baseUtil.FiveTuple{
 		SrcIP:        t.SrcIP,
@@ -35,9 +32,9 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 		ProtocolType: t.ProtocolType,
 	}
 
-	if t.SrcPort!=22 && t.DstPort!=22{
-		log.Println("111")
-	}
+	// if t.SrcPort!=22 && t.DstPort!=22{
+	// 	log.Println("111")
+	// }
 
 	//连接请求syn=1，ack=0
 	if tcp.SYN && !tcp.ACK {
@@ -58,7 +55,7 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 
 			//提取特征,并加入结果信道
 			if !config.DEBUG{
-				t.extractBaseFeature()
+				t.ExtractBaseFeature()
 			}
 
 			//创建新的连接，并返回
@@ -76,12 +73,7 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 			//记录TCP连接的Service
 			newTCPConversation.Service = GetTCPServiceType(fiveTuple)
 
-			t.back = true
-			if !config.DEBUG{
-				go t.checkTimeout() ///////////////////////////////////////////////
-			}
-
-			return newTCPConversation
+			return newTCPConversation,false
 		}
 
 	} else {
@@ -120,48 +112,25 @@ func (t *TCPConversation) addPacket(tcp layers.TCP, msg ConnMsg) *TCPConversatio
 		t.updateState(tcp, msg.srcIP)
 
 		if t.isFinal() {
-			//提取特征
-			if !config.DEBUG{
-				t.extractBaseFeature()
-			}
-
-			return nil
+			return nil,true
 		}
-
 	}
 
-	t.back = true
-
-	if !config.DEBUG{
-		go t.checkTimeout() ///////////////////////////////////////////////
-	}
-
-	return nil
+	return nil,false
 }
 
 //提取特征，传入返回结果信道
-func (t *TCPConversation) extractBaseFeature() {
+func (t *TCPConversation) ExtractBaseFeature() {
 	duration := uint(t.LastTime.Sub(t.StartTime))
 
 	tcpFeature := flowFeature.NewTcpBaseFeature(t.FiveTuple, duration, t.FiveTuple.ProtocolType,
 		t.Service, t.Flag, t.SrcBytes, t.DstBytes, t.Land, t.WrongFragment, t.Urgent)
 	tcpFeature.StartTime = t.StartTime
 	tcpFeature.LastTime = t.LastTime
-	resultChan := NewResultChan(t.FiveTuple.FastHash(), tcpFeature)
-	t.poolChan <- resultChan
+
+	t.poolChan <- tcpFeature
 }
 
-//检测连接是否超时
-func (t *TCPConversation) checkTimeout() {
-	t.timeout = time.NewTicker(time.Second * 2)
-	select {
-	case <-t.timeout.C:
-		if t.back {
-			//提取特征返回
-			t.extractBaseFeature()
-		}
-	}
-}
 
 //更新连接的状态
 func (t *TCPConversation) updateState(tcp layers.TCP, srcIP [4]byte) {
