@@ -46,6 +46,8 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	write := false
 	predictFlow := CallPredict.NewPredictFlow(":50051")
 
+	attackList := []string{"normal", "DOS", "PROBE"}
+
 	for {
 		select {
 		case feature := <-featureChan:
@@ -56,7 +58,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			}
 
 			label := predictFlow.Predict(feature)
-			log.Println("该攻击类型为：", baseUtil.AttackTypeList[label])
+			log.Println("该攻击类型为：", attackList[label])
 			if label == 7 {
 				log.Println(feature.SrcPort, "   ", feature.SrcIP)
 				log.Println(feature.FeatureToString())

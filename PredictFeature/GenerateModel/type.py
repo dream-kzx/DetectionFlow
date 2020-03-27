@@ -3,46 +3,94 @@
 class Attack():
     Type = {
         "normal": 0,
-        "back": 1,  # dos
-        "buffer_overflow": 2,  # u2r
-        "ftp_write": 3,  # r2l
-        "guess_passwd": 4,  # r2l
-        "imap": 5,  # r2l
-        "ipsweep": 6,  # probe
-        "land": 7,  # dos
-        "loadmodule": 8,  # u2r
-        "multihop": 9,  # r2l
-        "neptune": 10,  # dos
-        "nmap": 11,  # probe
-        "perl": 12,  # u2r
-        "phf": 13,  # r2l
-        "pod": 14,  # dos
-        "portsweep": 15,  # probe
-        "rootkit": 16,  # u2r
-        "satan": 17,  # probe
-        "smurf": 18,  # dos
-        "spy": 19,  # r2l
-        "teardrop": 20,  # dos
-        "warezclient": 21,  # r2l
-        "warezmaster": 22,  # r2l
-        "saint": 23,
-        "mscan": 24,
-        "apache2": 25,
-        "snmpgetattack": 26,
-        "processtable": 27,
-        "httptunnel": 28,
-        "ps": 29,
-        "snmpguess": 30,
-        "mailbomb": 31,
-        "named": 32,
-        "sendmail": 33,
-        "xterm": 34,
-        "worm": 35,
-        "xlock": 36,
-        "xsnoop": 37,
-        "sqlattack":38,
-        "udpstorm":39,
+        "loadmodule": 1,  # U2R
+        "buffer_overflow": 2,  # U2R
+        "perl": 3,  # U2R
+        "rootkit": 4,  # U2R
+        "ps": 5,  # U2R
+        "httptunnel": 6,  # U2R
+        "xterm": 7,  # U2R
+        "sqlattack": 8,  # U2R
+
+        "snmpgetattack": 9,  # R2L
+        "phf": 10,  # R2L
+        "warezmaster": 11,  # R2L
+        "warezclient": 12,  # R2L
+        "multihop": 13,  # R2L
+        "guess_passwd": 14,  # R2L
+        "spy": 15,  # R2L
+        "imap": 16,  # R2L
+        "ftp_write": 17,  # R2L
+        "sendmail": 18,  #
+        "xlock": 19,  # R2L
+        "worm": 20,  # R2L
+        "xsnoop": 21,  # R2L
+        "named": 22,  # R2L
+        "snmpguess": 23,  # R2L
+
+        "nmap": 24,  # Probe
+        "portsweep": 25,  # Probe
+        "mscan": 26,  # Probe
+        "satan": 27,  # Probe
+        "ipsweep": 28,  # Probe
+        "saint": 29,  # Probe
+
+        "apache2": 30,  # DOS
+        "back": 31,  # DOS
+        "smurf": 32,  # DOS
+        "pod": 33,  # DOS
+        "land": 34,  # DOS
+        "teardrop": 35,  # DOS
+        "neptune": 36,  # DOS
+        "udpstorm": 37,  # DOS
+        "processtable": 38,  # DOS
+        "mailbomb": 39,  # DOS
+
     }
+
+    R2L = [
+        "snmpgetattack",  # R2L
+        "phf",  # R2L
+        "warezmaster",  # R2L
+        "warezclient",  # R2L
+        "multihop",  # R2L
+        "guess_passwd",  # R2L
+        "spy",  # R2L
+        "imap",  # R2L
+        "ftp_write",  # R2L
+        "sendmail",  #
+        "xlock",  # R2L
+        "worm",  # R2L
+        "xsnoop",  # R2L
+        "named",  # R2L
+        "snmpguess"]
+
+    U2R = ["loadmodule",  # U2R
+           "buffer_overflow",  # U2R
+           "perl",  # U2R
+           "rootkit",  # U2R
+           "ps",  # U2R
+           "httptunnel",  # U2R
+           "xterm",  # U2R
+           "sqlattack"]
+
+    DOS = ["apache2",  # DOS
+           "back",  # DOS
+           "smurf",  # DOS
+           "pod",  # DOS
+           "land",  # DOS
+           "teardrop",  # DOS
+           "neptune",  # DOS
+           "udpstorm",  # DOS
+           "processtable",  # DOS
+           "mailbomb"]
+
+    PROBE = ["nmap",  # Probe
+             "portsweep",  # Probe
+             "mscan",  # Probe
+             "satan",  # Probe
+             "ipsweep",  # Probe
+             "saint"]
 
 
 class Service():
