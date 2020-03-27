@@ -62,7 +62,7 @@ func (c *CountWindow) removeInMap() {
 				if len(sameHostList) == 1 {
 					delete(c.sameHostMap, dstIPStr)
 				} else {
-					sameHostList = append(sameHostList[:i], sameHostList[i+1:]...)
+					c.sameHostMap[dstIPStr] = append(sameHostList[:i], sameHostList[i+1:]...)
 				}
 				break
 			}
@@ -81,7 +81,7 @@ func (c *CountWindow) removeInMap() {
 				if len(hostServiceList) == 1 {
 					delete(c.sameHostServiceMap, hostService)
 				} else {
-					hostServiceList = append(hostServiceList[:k], hostServiceList[k+1:]...)
+					c.sameHostServiceMap[hostService] = append(hostServiceList[:k], hostServiceList[k+1:]...)
 				}
 				break
 			}
