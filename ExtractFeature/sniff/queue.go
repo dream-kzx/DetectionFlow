@@ -1,6 +1,8 @@
 package sniff
 
-import "FlowDetection/flowFeature"
+import (
+	"FlowDetection/flowFeature"
+)
 
 type queueType = *flowFeature.TCPBaseFeature
 
@@ -39,6 +41,7 @@ func (q *Queue) Pop() bool {
 		return false
 	}
 
+	q.Size --
 	q.list = q.list[1:]
 	return true
 }

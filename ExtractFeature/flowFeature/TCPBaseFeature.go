@@ -2,10 +2,11 @@ package flowFeature
 
 import (
 	"FlowDetection/baseUtil"
-	"github.com/google/gopacket/layers"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/google/gopacket/layers"
 )
 
 const (
@@ -18,15 +19,15 @@ type TCPBaseFeature struct {
 	baseUtil.FiveTuple
 	StartTime     time.Time
 	LastTime      time.Time
-	Duration      uint      //1/41
-	ProtocolType  string    //2/41 Probe
-	Service       uint8		//3/41 Dos
-	Flag          uint8		//4/41 Dos
-	SrcBytes      uint		//5/41 Dos Probe
-	DstBytes      uint		//6/41
-	Land          uint8		//7/41
-	WrongFragment uint8		//8/41
-	Urgent        uint8		//9/41
+	Duration      uint   //1/41
+	ProtocolType  string //2/41 Probe
+	Service       uint8  //3/41 Dos
+	Flag          uint8  //4/41 Dos
+	SrcBytes      uint   //5/41 Dos Probe
+	DstBytes      uint   //6/41
+	Land          uint8  //7/41
+	WrongFragment uint8  //8/41
+	Urgent        uint8  //9/41
 }
 
 func (t TCPBaseFeature) Print() {
@@ -55,15 +56,15 @@ func (t TCPBaseFeature) IsRerror() bool {
 
 func (t TCPBaseFeature) FeatureToString() string {
 	data := ""
-	data += strconv.Itoa(int(t.Duration)) + ","
+	// data += strconv.Itoa(int(t.Duration)) + ","
 	data += t.ProtocolType + ","
 	data += ServiceToString(t.Service) + ","
 	data += FlagToString(t.Flag) + ","
 	data += strconv.Itoa(int(t.SrcBytes)) + ","
-	data += strconv.Itoa(int(t.DstBytes)) + ","
-	data += strconv.Itoa(int(t.Land)) + ","
-	data += strconv.Itoa(int(t.WrongFragment)) + ","
-	data += strconv.Itoa(int(t.Urgent)) + ","
+	// data += strconv.Itoa(int(t.DstBytes)) + ","
+	// data += strconv.Itoa(int(t.Land)) + ","
+	// data += strconv.Itoa(int(t.WrongFragment)) + ","
+	// data += strconv.Itoa(int(t.Urgent)) + ","
 
 	return data
 }
@@ -245,7 +246,7 @@ func FlagToString(flag uint8) string {
 	case baseUtil.OTH:
 		return "OTH"
 	default:
-		return ""
+		return strconv.Itoa(int(flag))
 	}
 }
 

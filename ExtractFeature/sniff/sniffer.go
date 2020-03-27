@@ -1,12 +1,16 @@
 package sniff
 
 import (
+	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"fmt"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/ip4defrag"
-	"github.com/google/gopacket/pcap"
+	"os"
 	"time"
+
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcap"
+	"github.com/google/gopacket/pcapgo"
 )
 
 const (
@@ -19,8 +23,8 @@ const (
 //	SetSnifferInterface(device string)
 //	StartSniffer()
 type Sniffer struct {
-	Devices          []pcap.Interface
-	handle           *pcap.Handle
+	Devices []pcap.Interface
+	handle  *pcap.Handle
 	// FragmentList     *ip4defrag.IPv4Defragmenter
 	conversationPool *ConversationPool
 }
@@ -31,7 +35,7 @@ func NewSniffer(featureChan chan *flowFeature.FlowFeature) (*Sniffer, error) {
 		return nil, err
 	}
 	return &Sniffer{
-		Devices:          devices,
+		Devices: devices,
 		// FragmentList:     ip4defrag.NewIPv4Defragmenter(),
 		conversationPool: NewConversationPool(featureChan),
 	}, nil
@@ -74,6 +78,15 @@ func (sniffer *Sniffer) StartSniffer() {
 
 	go sniffer.conversationPool.checkResultChan()
 
+	//写PCAP文件
+	if baseUtil.CheckFileIsExist("test.pcap") {
+		_ = os.Remove("test.pcap")
+	}
+	f, _ := os.Create("test.pcap")
+	w := pcapgo.NewWriter(f)
+	w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
+	defer f.Close()
+
 	packetCount := 0
 	packetSource := gopacket.NewPacketSource(sniffer.handle, sniffer.handle.LinkType())
 	packets := packetSource.Packets()
@@ -82,6 +95,7 @@ func (sniffer *Sniffer) StartSniffer() {
 	for {
 		select {
 		case packet := <-packets:
+			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
 			sniffer.conversationPool.DisposePacket(packet)
 			//case <-ticker:
 

@@ -1,6 +1,8 @@
 package sniff
 
-import "FlowDetection/flowFeature"
+import (
+	"FlowDetection/flowFeature"
+)
 
 const WindowSize = 256
 
@@ -63,6 +65,7 @@ func (c *CountWindow) removeInMap() {
 					delete(c.sameHostMap, dstIPStr)
 				} else {
 					sameHostList = append(sameHostList[:i], sameHostList[i+1:]...)
+					c.sameHostMap[dstIPStr] = sameHostList
 				}
 				break
 			}
@@ -82,6 +85,7 @@ func (c *CountWindow) removeInMap() {
 					delete(c.sameHostServiceMap, hostService)
 				} else {
 					hostServiceList = append(hostServiceList[:k], hostServiceList[k+1:]...)
+					c.sameHostServiceMap[hostService]=hostServiceList
 				}
 				break
 			}
@@ -127,6 +131,7 @@ func (c *CountWindow) calculateFeature(tcpBaseFeature *flowFeature.TCPBaseFeatur
 	//dstServiceCount := c.sameServiceMap[service] //P(B)
 	dstHostServiceList := c.sameHostServiceMap[serviceHost]
 	dstHostSrvCount := len(dstHostServiceList) //33 P(AB)
+
 
 	dstHostSameSrvRate := float64(dstHostSrvCount) / WindowSize              //34 P(AB)/256
 	dstHostDiffSrvRate := float64(dstHostCount-dstHostSrvCount) / WindowSize //35 (P(A)-P(AB))/256
