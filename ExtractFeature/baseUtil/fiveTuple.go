@@ -14,20 +14,12 @@ type FiveTuple struct {
 }
 
 func (f *FiveTuple) FastHash() (h uint64) {
-	var data []byte
-	data = append(data, uint16ToBytes(f.DstPort)...)
-	data = append(data, uint16ToBytes(f.SrcPort)...)
-	for _, n := range f.SrcIP {
-		data = append(data, n)
-	}
-
-	for _, n := range f.DstIP {
-		data = append(data, n)
-	}
-
-	h = fnvHash(data)
+	data1 := uint16ToBytes(f.DstPort)
+	data2 := uint16ToBytes(f.SrcPort)
+	h = fnvHash(data1) + fnvHash(data2) + fnvHash(f.SrcIP[:]) + fnvHash(f.DstIP[:])
 	h ^= uint64(f.ProtocolType)
 	h *= fnvPrime
+
 	return
 }
 
