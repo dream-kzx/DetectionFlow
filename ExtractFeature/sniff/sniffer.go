@@ -162,7 +162,7 @@ func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
 	case layers.IPProtocolUDP:
 		p := gopacket.NewPacket(payload, layers.LayerTypeUDP, gopacket.Default)
 		if layer := p.Layer(layers.LayerTypeUDP); layer != nil {
-			if udp := layer.(*layers.UDP); ok {
+			if udp,ok := layer.(*layers.UDP); ok {
 				sniffer.conversationPool.addUDPPacket(*udp, *conMsgs[ipv4Layer.Id])
 			}
 		}
