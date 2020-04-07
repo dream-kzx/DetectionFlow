@@ -2,6 +2,7 @@ package sniff
 
 import (
 	"FlowDetection/baseUtil"
+	"FlowDetection/config"
 	"time"
 )
 
@@ -38,11 +39,19 @@ type Conversation struct {
 }
 
 func GetTCPServiceType(fiveTuple baseUtil.FiveTuple) int {
-	if fiveTuple.SrcPort == 20 {
-		return baseUtil.SRV_FTP_DATA
+	srcPort := uint16(0)
+	dstPort := uint16(0)
+	if fiveTuple.DstIP == config.SERVERIP {
+		srcPort = fiveTuple.SrcPort
+		dstPort = fiveTuple.DstPort
+	} else {
+		srcPort = fiveTuple.DstPort
+		dstPort = fiveTuple.SrcPort
 	}
 
-	dstPort := fiveTuple.DstPort
+	if srcPort == 20 {
+		return baseUtil.SRV_FTP_DATA
+	}
 
 	switch dstPort {
 	case 194, 529, 2218, 6665, 6666, 6668, 6669, 6697: // Internet Relay Chat via TLS/SSL
@@ -237,7 +246,15 @@ func GetTCPServiceType(fiveTuple baseUtil.FiveTuple) int {
 }
 
 func GetUDPServiceType(fiveTuple baseUtil.FiveTuple) int {
-	switch fiveTuple.DstPort {
+
+	dstPort := uint16(0)
+	if fiveTuple.DstIP == config.SERVERIP {
+		dstPort = fiveTuple.DstPort
+	} else {
+		dstPort = fiveTuple.SrcPort
+	}
+
+	switch dstPort {
 	case 53: // DNS
 		return baseUtil.SRV_DOMAIN_U
 

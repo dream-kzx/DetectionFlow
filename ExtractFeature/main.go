@@ -7,11 +7,13 @@ import (
 	"FlowDetection/sniff"
 	"fmt"
 	"log"
+	"runtime"
+	"strconv"
 )
 
 const (
-	device      string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	// device      string = "ens33"
+	// device      string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	device      string = "ens33"
 	promiscuous bool   = false //是否开启混杂模式
 )
 
@@ -21,6 +23,7 @@ const (
 // }
 
 func main() {
+	runtime.GOMAXPROCS(2)
 	featureChan := make(chan *flowFeature.FlowFeature, 5)
 
 	sniffer, err := sniff.NewSniffer(featureChan)
@@ -43,7 +46,7 @@ func main() {
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	wf := baseUtil.MyWriteFile{}
 	wf.OpenFile("feature.csv")
-	write := false
+	write := true
 	predictFlow := CallPredict.NewPredictFlow(":50051")
 
 	attackList := []string{"normal", "DOS", "PROBE"}
@@ -51,20 +54,37 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	for {
 		select {
 		case feature := <-featureChan:
-			feature.Print()
-
-			if write {
-				wf.Write(feature.FeatureToString())
-			}
+			// feature.Print()
 
 			label := predictFlow.Predict(feature)
-			log.Println("该攻击类型为：", attackList[label])
-			if label == 7 {
-				log.Println(feature.SrcPort, "   ", feature.SrcIP)
-				log.Println(feature.FeatureToString())
-
+			if write {
+				data := feature.FeatureToString()
+				data += attackList[label] + ","
+				data += ipToString(feature.SrcIP)
+				data += strconv.Itoa(int(feature.SrcPort)) + ","
+				data += ipToString(feature.DstIP)
+				data += strconv.Itoa(int(feature.DstPort))
+				data += "\n"
+				// log.Println(data)
+				wf.Write(data)
 			}
+			log.Println("该攻击类型为：", attackList[label])
+
+			log.Println(feature.SrcPort, "   ", feature.SrcIP)
+			log.Println(feature.DstPort, "   ", feature.DstIP)
+			log.Println(feature.FeatureToString())
+
 		}
 
 	}
+}
+
+
+func ipToString(ip [4]byte) string {
+	data := ""
+	data += strconv.Itoa(int(ip[0])) + "."
+	data += strconv.Itoa(int(ip[1])) + "."
+	data += strconv.Itoa(int(ip[2])) + "."
+	data += strconv.Itoa(int(ip[3])) + ","
+	return data
 }
