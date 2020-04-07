@@ -1,3 +1,8 @@
 /.vscode
 /.idea
+/output
+
+bind_windows_amd64.go
+windows.syso
+
 
