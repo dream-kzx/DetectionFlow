@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/lib/element/css/index.css">
+    <link href="static/css/app.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" v-loading.fullscreen.lock="loadingGroup.fullscreenLoading" v-cloak>
+    <el-container>
+        <el-aside width="200px" class="unselectable">
+            <div class="aside-controller">
+                <el-button-group>
+                    <el-tooltip content="刷新" placement="top">
+                        <el-button type="primary" icon="el-icon-refresh"></el-button>
+                    </el-tooltip>
+                    <el-tooltip content="设置" placement="top">
+                        <el-button type="primary" icon="el-icon-setting"></el-button>
+                    </el-tooltip>
+                </el-button-group>
+            </div>
+            <ul class="list">
+                <li :class="item.active ? 'current' : '' " v-for="item in menuList" @click="selectMenu(item.name)">
+                    <i class="fa fa-lg el-icon-fa-list-ul"></i>
+                    {{ item.name }}
+                </li>
+            </ul>
+        </el-aside>
+        <el-container>
+            <el-header class="unselectable">
+                <h4>{{ system.currentPanelName }}</h4>
+            </el-header>
+            <el-main>
+                <el-table v-if="system.currentPanelName == '监控'"
+                        ref="multipleTable"
+                        :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
+                        v-loading="loadingGroup.menuLoading"
+                        stripe
+                        empty-text="No results"
+                        tooltip-effect="dark"
+                        show-overflow-tooltip
+                        :row-class-name="tableRowClassName"
+                        @selection-change="handleSelectionChange"
+                        height="100%"
+                        style="width: 100%; ">
+                    <el-table-column
+                            type="selection"
+                            align="center"
+                            width="55">
+                    </el-table-column>
+                    <el-table-column
+                            label="IP"
+                            width="180">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.ip }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="连接数"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.connNum }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="异常比率"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.abnormalRate }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="攻击类型"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.attackType }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            resizable="true"
+                            label="-"
+                            align="center">
+                        <template slot-scope="scope">
+                            <el-button icon="el-icon-plus" @click="deleteHost(scope.$index)" plain={true}
+                               :loading="loadingGroup.addBlackLoading" size = "mini">加入黑名单
+                            </el-button>
+
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <el-table v-else-if="system.currentPanelName == '处理记录'"
+                        ref="multipleTable"
+                        :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
+                        v-loading="loadingGroup.menuLoading"
+                        stripe
+                        empty-text="No results"
+                        tooltip-effect="dark"
+                        show-overflow-tooltip
+                        :row-class-name="tableRowClassName"
+                        @selection-change="handleSelectionChange"
+                        height="100%"
+                        style="width: 100%; ">
+                    <el-table-column
+                            type="selection"
+                            align="center"
+                            width="55">
+                    </el-table-column>
+                    <el-table-column
+                            label="IP"
+                            width="180">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.ip }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="连接数"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.connNum }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="异常比率"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.abnormalRate }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="攻击类型"
+                            width="120">
+                        <template slot-scope="scope">
+                            <span class="edit-column">{{ scope.row.attackType }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            resizable="true"
+                            label="-"
+                            align="center">
+                        <template slot-scope="scope">
+                            <el-button icon="el-icon-plus" @click="deleteHost(scope.$index)" plain={true}
+                               :loading="loadingGroup.removeBlackLoading" size = "mini">移出黑名单
+                            </el-button>
+
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+
+                <!-- pagination start -->
+                <el-pagination
+                        class="unselectable"
+                        background
+                        :page-size="page.pageSize"
+                        :pager-count="5"
+                        layout="slot, prev, pager, next"
+                        @current-change="handleCurrentChange"
+                        :total="this.system.currentList.length">
+                    <span class="el-pagination__total">Total {{ system.currentList.length }} items </span>
+
+                </el-pagination>
+
+                <!-- pagination end -->
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="static/js/vue-2.5.17.min.js"></script>
+<!-- import JavaScript -->
+<script src="static/lib/element/js/index.js"></script>
+<script src="static/js/base.js"></script>
+</html>
