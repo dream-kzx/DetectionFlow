@@ -2,7 +2,6 @@ package sniff
 
 import (
 	"FlowDetection/baseUtil"
-	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"fmt"
 	"log"
@@ -81,9 +80,7 @@ type ConnMsg struct {
 func (sniffer *Sniffer) StartSniffer() {
 	defer sniffer.handle.Close()
 
-	if !config.DEBUG {
-		go sniffer.conversationPool.checkResultChan()
-	}
+	go sniffer.conversationPool.checkResultChan()
 
 	//写PCAP文件
 	if baseUtil.CheckFileIsExist("test.pcap") {
@@ -91,114 +88,27 @@ func (sniffer *Sniffer) StartSniffer() {
 	}
 	f, _ := os.Create("test.pcap")
 	w := pcapgo.NewWriter(f)
-	w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
+	_ = w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
 	defer f.Close()
 
-	packetCount := 0
 	packetSource := gopacket.NewPacketSource(sniffer.handle, sniffer.handle.LinkType())
 	packets := packetSource.Packets()
 
-	//ticker := time.Tick(time.Minute)
 	for {
 		select {
 		case packet := <-packets:
-			if packetCount < 20 {
-				log.Println("packget: ", packetCount)
-				packetCount++
+
+			err := w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
+			if err != nil {
+				log.Println(err)
 			}
 
-			if packetCount == 12{
-				log.Println("packget: ", packetCount)
-
-			}
-			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
-			// sniffer.disposePacket(packet)
 			sniffer.conversationPool.DisposePacket(packet)
-			//case <-ticker:
+		case <-time.After(2 * time.Second):
+			log.Println("2秒内没有连接到达...(sniffer.go 112)")
 		}
 
 	}
 
-	fmt.Println("end")
 }
 
-func (sniffer *Sniffer) disposePacket(packet gopacket.Packet) {
-	ipv4 := packet.Layer(layers.LayerTypeIPv4)
-	if ipv4 == nil {
-		log.Println("(Sniffer.disposePacket) packet parsing fail!")
-		log.Println(packet.LinkLayer().LayerType())
-		return
-	}
-
-	ipv4Layer, ok := ipv4.(*layers.IPv4)
-	if !ok {
-		log.Println("cast failed!")
-		return
-	}
-
-	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
-	//通过IP数据包中，每个分片的ID是唯一标识的
-	t, ok := sniffer.connMsg[ipv4Layer.Id]
-	if ok {
-		t.Last = packet.Metadata().Timestamp
-	} else {
-		var srcIp, dstIp [4]byte
-		copy(srcIp[:4], ipv4Layer.SrcIP)
-		copy(dstIp[:4], ipv4Layer.DstIP)
-		now := &ConnMsg{
-			srcIP: srcIp,
-			dstIP: dstIp,
-			Start: packet.Metadata().Timestamp,
-			Last:  packet.Metadata().Timestamp,
-		}
-		sniffer.connMsg[ipv4Layer.Id] = now
-	}
-
-	//对ip分片进行头部校验
-	if !IPCheckSum(ipv4Layer.Contents[0:20]) {
-		sniffer.connMsg[ipv4Layer.Id].wrong++
-	}
-
-	//检测是否需要ip分片重组
-	ipPacket, err := sniffer.FragmentList.DefragIPv4WithTimestamp(
-		ipv4Layer, packet.Metadata().Timestamp)
-	if err != nil {
-		log.Println("该包为IP分片！(sniffer.go 141)")
-		return
-	}
-
-	payload := ipPacket.Payload
-
-	switch ipPacket.Protocol {
-	case layers.IPProtocolICMPv4:
-		log.Println("icmp (sniffer.go 148)")
-		p := gopacket.NewPacket(payload, layers.LayerTypeICMPv4, gopacket.Default)
-		if layer := p.Layer(layers.LayerTypeICMPv4); layer != nil {
-			if icmp, ok := layer.(*layers.ICMPv4); ok {
-				sniffer.conversationPool.addICMPPacket(*icmp, *sniffer.connMsg[ipv4Layer.Id])
-			}
-		}
-	case layers.IPProtocolTCP:
-		log.Println("tcp (sniffer.go 156)")
-		p := gopacket.NewPacket(payload, layers.LayerTypeTCP, gopacket.Default)
-		if layer := p.Layer(layers.LayerTypeTCP); layer != nil {
-			if tcp, ok := layer.(*layers.TCP); ok {
-				sniffer.conversationPool.addTCPPacket(*tcp, *sniffer.connMsg[ipv4Layer.Id])
-			}
-		}
-
-	case layers.IPProtocolUDP:
-		log.Println("UDP (sniffer.go 165)")
-		p := gopacket.NewPacket(payload, layers.LayerTypeUDP, gopacket.Default)
-		if layer := p.Layer(layers.LayerTypeUDP); layer != nil {
-			if udp := layer.(*layers.UDP); ok {
-				sniffer.conversationPool.addUDPPacket(*udp, *sniffer.connMsg[ipv4Layer.Id])
-			}
-		}
-
-	default:
-		return
-	}
-
-	delete(sniffer.connMsg, ipv4Layer.Id)
-}

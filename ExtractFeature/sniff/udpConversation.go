@@ -21,6 +21,7 @@ func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) {
 		u.Service = GetUDPServiceType(u.FiveTuple)
 
 		u.Flag = baseUtil.SF
+		u.Urgent = 0
 	}
 	u.LastTime = connMsg.Last
 
@@ -37,13 +38,6 @@ func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) {
 	}
 
 	u.WrongFragment += connMsg.wrong
-
-	u.Urgent = 0
-
-	// tcpBaseFeature := flowFeature.NewTcpBaseFeature(fiveTuple, uint(duration), fiveTuple.ProtocolType,
-	// 	service, flag, u.SrcBytes, u.DstBytes, u.Land, u.WrongFragment, u.Urgent)
-
-	// return tcpBaseFeature
 }
 
 func (u *UDPConversation) ExtractBaseFeature() {

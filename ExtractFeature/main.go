@@ -3,37 +3,32 @@ package main
 import (
 	"FlowDetection/CallPredict"
 	"FlowDetection/baseUtil"
-	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"FlowDetection/sniff"
 	"fmt"
 	"log"
-	"runtime"
 	"strconv"
 )
 
 const (
 	device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
 	// device      string = "ens33"
-	promiscuous bool   = true //是否开启混杂模式
+	promiscuous bool = true //是否开启混杂模式
 )
-
-// func main(){
-// 	i := 1
-// 	fmt.Println("test debug!",i)
-// }
 
 func main() {
 
 	featureChan := make(chan *flowFeature.FlowFeature, 5)
 
+	go snifferAndExtract(featureChan)
+
+	go PredictFLowInFeature(featureChan)
+}
+
+func snifferAndExtract(featureChan chan *flowFeature.FlowFeature) {
 	sniffer, err := sniff.NewSniffer(featureChan)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if !config.DEBUG{
-		go PredictFLowInFeature(featureChan)
 	}
 
 	err = sniffer.SetSnifferInterface(device, promiscuous)
@@ -43,7 +38,6 @@ func main() {
 
 	fmt.Println("开始监听：")
 	sniffer.StartSniffer()
-
 }
 
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
