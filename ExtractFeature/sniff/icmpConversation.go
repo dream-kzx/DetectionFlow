@@ -25,7 +25,7 @@ func (i ICMPConversation) AddPacket(icmp layers.ICMPv4,
 		DstIP:        connMsg.dstIP,
 		SrcPort:      0,
 		DstPort:      0,
-		ProtocolType: layers.IPProtocolUDP,
+		ProtocolType: layers.IPProtocolICMPv4,
 	}
 
 	duration := connMsg.Last.Sub(connMsg.Start)

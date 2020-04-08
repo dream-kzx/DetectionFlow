@@ -26,7 +26,8 @@ func (handler *Handler) toFirstCharUpper(str string) string {
 	return string(r)
 }
 
-func (handler *Handler) handleMessages(w *astilectron.Window, messageIn bootstrap.MessageIn) (payload interface{}, handleErr error) {
+func (handler *Handler) handleMessages(w *astilectron.Window,
+	messageIn bootstrap.MessageIn) (payload interface{}, handleErr error) {
 	//explain data
 	var data map[string]interface{}
 	data = make(map[string]interface{})

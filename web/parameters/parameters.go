@@ -13,7 +13,8 @@ func (p *Parameters) From(data map[string]interface{}) {
 	p.data = data
 }
 
-func (p *Parameters) GetString(name string, args ...interface{}) (string, bool) {
+func (p *Parameters) GetString(name string,
+	args ...interface{}) (string, bool) {
 	v := p.Get(name, args)
 	if v == nil {
 		return "", false
@@ -21,7 +22,8 @@ func (p *Parameters) GetString(name string, args ...interface{}) (string, bool) 
 	return v.(string), true
 }
 
-func (p *Parameters) GetArray(name string, args ...interface{}) ([]interface{}, bool) {
+func (p *Parameters) GetArray(name string,
+	args ...interface{}) ([]interface{}, bool) {
 	v := p.Get(name, args).([]interface{})
 	if v == nil {
 		return v, false
