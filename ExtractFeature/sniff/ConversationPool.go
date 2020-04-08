@@ -199,10 +199,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 
 func (tPool *ConversationPool) checkTimeout(now time.Time) {
 	mapQueue := tPool.mapQueue
-	log.Println(mapQueue.Size, "(ConversationPool.go 127)")
-	if mapQueue.Size == 3 {
-		log.Println("11111")
-	}
+	
 	for mapQueue.Size > 0 {
 		key := mapQueue.Front()
 		t, ok := tPool.TCPList[key]
