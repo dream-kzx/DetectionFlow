@@ -3,6 +3,7 @@ package sniff
 import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/config"
+	"log"
 	"time"
 )
 
@@ -278,6 +279,8 @@ func GetUDPServiceType(fiveTuple baseUtil.FiveTuple) int {
 }
 
 func GetICMPServiceType(icmpType, icmpCode uint8) int {
+	log.Println("ICMPType: ",icmpType,"   ICMPCode: ",icmpCode)
+
 	switch icmpType {
 	case baseUtil.ECHOREPLY:
 		return baseUtil.SRV_ECR_I // Echo Reply (0)

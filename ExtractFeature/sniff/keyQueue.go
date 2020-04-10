@@ -46,36 +46,33 @@ func (q *KeyQueue) Pop() bool {
 	return true
 }
 
-func (q *KeyQueue) ResetValue(value uint64){
-	// log.Println("lock in rest")
+//对指定的值进行重置
+//如果该值已存在在队列中，则先删除，然后加到队列尾部
+func (q *KeyQueue) ResetValue(value uint64) {
 	q.Lock()
-	for i, v := range q.list{
-		if v == value{
-			q.list = removeSclie(q.list,i)
+	for i, v := range q.list {
+		if v == value {
+			q.list = removeSlice(q.list, i)
 			break
 		}
 	}
 
-	q.list = append(q.list,value)
+	q.list = append(q.list, value)
 	q.Unlock()
-	// log.Println("unlock in rest")
 }
 
-func (q *KeyQueue) RemoveValue(value uint64){
-	// log.Println("lock in remove")
+func (q *KeyQueue) RemoveValue(value uint64) {
 	q.Lock()
-	for i, v := range q.list{
-		if v == value{
+	for i, v := range q.list {
+		if v == value {
 			q.Size--
-			q.list = removeSclie(q.list,i)
+			q.list = removeSlice(q.list, i)
 			break
 		}
 	}
 	q.Unlock()
-	// log.Println("unlock in remove")
-
 }
 
-func removeSclie(list []uint64, index int) []uint64{
-	return append(list[:index],list[index+1:]...)
+func removeSlice(list []uint64, index int) []uint64 {
+	return append(list[:index], list[index+1:]...)
 }

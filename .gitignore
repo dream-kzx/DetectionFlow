@@ -1,2 +1,5 @@
 /.vscode
 /.idea
+
+/PredictFeature/CallPredict/__pycache__
+/PredictFeature/GenerateModel/__pycache__

@@ -1,2 +1,5 @@
 /.vscode
 /.idea
+
+/GenerateModel/__pycache__
+/CallPredict/__pycache__

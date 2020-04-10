@@ -1,5 +1,0 @@
-protocol_type,service,flag,src_bytes,same_srv_rate,dst_host_srv_count,dst_host_same_srv_rate,dst_host_diff_srv_rate,dst_host_srv_serror_rate,label,srcIP,srcPort,dstIP,dstPort
-udp,other,SF,152,0.000000,0,0.000000,0.000000,0.000000,normal,192.168.122.128,42989,192.168.122.2,53
-udp,other,SF,199,1.000000,1,0.003906,0.000000,0.000000,normal,192.168.122.128,49447,192.168.122.2,53
-udp,other,SF,124,1.000000,2,0.007812,0.000000,0.000000,normal,192.168.122.128,35218,192.168.122.2,53
-tcp,other,OTH,0,0.000000,0,0.000000,0.000000,0.000000,DOS,192.168.122.128,35926,111.221.29.254,443

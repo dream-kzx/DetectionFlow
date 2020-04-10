@@ -4,15 +4,12 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
-	// "log"
 	"time"
 
-	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 )
 
 type TCPConversation struct {
-	gopacket.Flow
 	Conversation
 	tcpNum   int
 	poolChan chan interface{} //用于结束后返回结果到pool
@@ -20,9 +17,8 @@ type TCPConversation struct {
 	back     bool             //用于在超时之后，是否返回结果
 }
 
-func (t *TCPConversation) addPacket(tcp layers.TCP,
-	msg ConnMsg) (*TCPConversation,bool) {
-	//在有新的包到来时，重新计时
+func (t *TCPConversation) addPacket(tcp *layers.TCP,
+	msg ConnMsg) (*TCPConversation, bool) {
 
 	fiveTuple := baseUtil.FiveTuple{
 		SrcIP:        t.SrcIP,
@@ -32,13 +28,10 @@ func (t *TCPConversation) addPacket(tcp layers.TCP,
 		ProtocolType: t.ProtocolType,
 	}
 
-	// if t.SrcPort!=22 && t.DstPort!=22{
-	// 	log.Println("111")
-	// }
-
 	//连接请求syn=1，ack=0
 	if tcp.SYN && !tcp.ACK {
-		if t.Flag == 0 { //如果是新创建的连接
+		//如果是新创建的连接
+		if t.Flag == 0 {
 			//记录TCP连接的Flag状态
 			t.Flag = baseUtil.INIT
 			//记录TCP连接land状态
@@ -51,16 +44,13 @@ func (t *TCPConversation) addPacket(tcp layers.TCP,
 			t.updateState(tcp, t.SrcIP)
 			//记录TCP连接的Service
 			t.Service = GetTCPServiceType(fiveTuple)
-		} else { //如果是旧的连接则，
+		} else { //如果之前已存在同样hash的TCP连接，则提取特征返回并创建新的连接
 
 			//提取特征,并加入结果信道
-			if !config.DEBUG{
-				t.ExtractBaseFeature()
-			}
+			t.ExtractBaseFeature()
 
 			//创建新的连接，并返回
-			newTCPConversation := NewTCPConversation(fiveTuple, msg.Start,
-				tcp.TransportFlow(), t.poolChan)
+			newTCPConversation := NewTCPConversation(fiveTuple, msg.Start, t.poolChan)
 
 			newTCPConversation.Flag = baseUtil.INIT
 			if msg.srcIP == msg.dstIP {
@@ -73,7 +63,7 @@ func (t *TCPConversation) addPacket(tcp layers.TCP,
 			//记录TCP连接的Service
 			newTCPConversation.Service = GetTCPServiceType(fiveTuple)
 
-			return newTCPConversation,false
+			return newTCPConversation, false
 		}
 
 	} else {
@@ -112,11 +102,11 @@ func (t *TCPConversation) addPacket(tcp layers.TCP,
 		t.updateState(tcp, msg.srcIP)
 
 		if t.isFinal() {
-			return nil,true
+			return nil, true
 		}
 	}
 
-	return nil,false
+	return nil, false
 }
 
 //提取特征，传入返回结果信道
@@ -131,9 +121,8 @@ func (t *TCPConversation) ExtractBaseFeature() {
 	t.poolChan <- tcpFeature
 }
 
-
 //更新连接的状态
-func (t *TCPConversation) updateState(tcp layers.TCP, srcIP [4]byte) {
+func (t *TCPConversation) updateState(tcp *layers.TCP, srcIP [4]byte) {
 	nowState := t.Flag
 
 	from := config.SERVERIP != srcIP //判断是否是客户机发来的包
@@ -230,14 +219,13 @@ func (t *TCPConversation) isFinal() bool {
 
 }
 
-func NewTCPConversation(tuple baseUtil.FiveTuple, start time.Time, flow gopacket.Flow,
+func NewTCPConversation(tuple baseUtil.FiveTuple, start time.Time,
 	poolChan chan interface{}) *TCPConversation {
 	return &TCPConversation{
 		Conversation: Conversation{
 			FiveTuple: tuple,
 			StartTime: start,
 		},
-		Flow:     flow,
 		poolChan: poolChan,
 	}
 }
