@@ -17,26 +17,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
         // current group config
         currentGroupConfig: {},
         // table rows depended on this variable
-        currentList: [{ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-        ], //[{ip:"1", domain: "a", enabled: true}],
+        currentList: [], //[{ip:"1", domain: "a", enabled: true}],
         // put system hosts at here
         systemHosts: []
     };
@@ -59,48 +40,11 @@ Server.prototype.sendMessage = function (name, payload, callback) {
             menuList: [
                 {
                     name: "监控", active: true,
-                    connList: [
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                    ]
+                    connList: []
                 },
                 {
                     name: "处理记录", active: false,
-                    connList: [
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                    ]
+                    connList: []
                 }
             ],
             system: system,

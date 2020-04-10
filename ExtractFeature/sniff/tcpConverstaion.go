@@ -40,7 +40,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 			} else {
 				t.Land = 0
 			}
-
+			t.LastTime = msg.Last
 			t.updateState(tcp, t.SrcIP)
 			//记录TCP连接的Service
 			t.Service = GetTCPServiceType(fiveTuple)
@@ -51,6 +51,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 
 			//创建新的连接，并返回
 			newTCPConversation := NewTCPConversation(fiveTuple, msg.Start, t.poolChan)
+			newTCPConversation.LastTime = msg.Last
 
 			newTCPConversation.Flag = baseUtil.INIT
 			if msg.srcIP == msg.dstIP {

@@ -28,6 +28,8 @@ func (i ICMPConversation) AddPacket(icmp layers.ICMPv4,
 		ProtocolType: layers.IPProtocolICMPv4,
 	}
 
+	i.StartTime = connMsg.Start
+	i.LastTime = connMsg.Last
 	duration := connMsg.Last.Sub(connMsg.Start)
 
 	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())

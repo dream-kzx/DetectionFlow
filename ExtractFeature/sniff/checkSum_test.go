@@ -1,6 +1,7 @@
 package sniff
 
 import (
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -66,12 +67,9 @@ func NewTest1(a, b int) *Test1 {
 }
 
 func TestCheckSum(t *testing.T) {
-	testMap := make(map[uint]*Test1)
+	a := []int{1,2,3,4,5,6}
 
-	for i := uint(2); i < 11; i++ {
-		testMap[i].a++
-		testMap[i].b++
-
-	}
-
+	b := make([]int,len(a))
+	copy(b,a)
+	fmt.Println(b)
 }

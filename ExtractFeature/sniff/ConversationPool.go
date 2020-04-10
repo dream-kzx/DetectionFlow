@@ -2,6 +2,7 @@ package sniff
 
 import (
 	"FlowDetection/baseUtil"
+	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
@@ -109,7 +110,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 		}
 
 	default:
-		log.Println("未知的包类型 ConversationPool.go")
+		log.Println("未知的包类型 ConversationPool.go ",ipPacket.Protocol)
 	}
 
 	delete(tPool.connMsgs, ipRefraKey)
@@ -119,13 +120,26 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 	connMsg ConnMsg) {
 	mapList := tPool.TCPList
 
-	fiveTuple := baseUtil.FiveTuple{
-		SrcIP:        connMsg.srcIP,
-		DstIP:        connMsg.dstIP,
-		SrcPort:      uint16(tcp.SrcPort),
-		DstPort:      uint16(tcp.DstPort),
-		ProtocolType: layers.IPProtocolTCP,
+	var fiveTuple baseUtil.FiveTuple
+
+	if connMsg.srcIP != config.SERVERIP{
+		fiveTuple = baseUtil.FiveTuple{
+			SrcIP:        connMsg.srcIP,
+			DstIP:        connMsg.dstIP,
+			SrcPort:      uint16(tcp.SrcPort),
+			DstPort:      uint16(tcp.DstPort),
+			ProtocolType: layers.IPProtocolTCP,
+		}
+	}else{
+		fiveTuple = baseUtil.FiveTuple{
+			SrcIP:        connMsg.dstIP,
+			DstIP:        connMsg.srcIP,
+			SrcPort:      uint16(tcp.SrcPort),
+			DstPort:      uint16(tcp.DstPort),
+			ProtocolType: layers.IPProtocolTCP,
+		}
 	}
+
 
 	converHash := fiveTuple.FastHash()
 
@@ -199,38 +213,57 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 
 func (tPool *ConversationPool) checkTimeout(now time.Time) {
 	mapQueue := tPool.mapQueue
-	
-	for mapQueue.Size > 0 {
-		key := mapQueue.Front()
-		t, ok := tPool.TCPList[key]
+
+	forList := tPool.mapQueue.List()
+
+	for _, v := range forList {
+		t, ok := tPool.TCPList[v]
 		if ok {
 			interval := now.Sub(t.LastTime)
+			isTimeout := false
 			//如果连接超时，则将记录连接的key从队列中出队，
 			//同时提取特征，并删除TCPList中的这个链接
-			if interval > 2*1000*1000*1000 {
-				tPool.mapQueue.Pop()
+			switch t.Flag {
+			//case baseUtil.S0, baseUtil.ESTAB, baseUtil.SH, baseUtil.S2, baseUtil.S3, baseUtil.S2F, baseUtil.S3F:
+			//case baseUtil.REJ,baseUtil.RSTO,baseUtil.RSTOS0,baseUtil.RSTR:
+			//	is_timedout = (conv->get_last_ts() <= max_tcp_rst);
+			case baseUtil.S0, baseUtil.S1:
+				log.Println(t.LastTime)
+				log.Println(now)
+				isTimeout = interval >= baseUtil.TcpSynTimeout
+
+			case baseUtil.ESTAB:
+				isTimeout = interval >= baseUtil.TcpEstabTimeout
+
+			case baseUtil.S2, baseUtil.S3, baseUtil.SH:
+				isTimeout = interval >= baseUtil.TcpFinTimeout
+
+			case baseUtil.S2F, baseUtil.S3F:
+				isTimeout = interval >= baseUtil.TcpLastAckTimeout
+			}
+
+			if isTimeout {
+				tPool.mapQueue.RemoveValue(v)
 				t.ExtractBaseFeature()
-				delete(tPool.TCPList, key)
-			} else {
-				return
+				delete(tPool.TCPList, v)
 			}
 		} else {
 			//如果不是TCP连接列表中的连接，则在UDP连接列表中进行查询
-			u, ok := tPool.UDPList[key]
+			u, ok := tPool.UDPList[v]
 			if ok {
 				interval := now.Sub(u.LastTime)
-				if interval > 2*1000*1000*1000 {
-					mapQueue.Pop()
+
+				if interval >= baseUtil.UdpTimeout {
+					mapQueue.RemoveValue(v)
 					u.ExtractBaseFeature()
-					delete(tPool.UDPList, key)
-				} else {
-					return
+					delete(tPool.UDPList, v)
 				}
 			} else {
 				log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
 			}
 		}
 	}
+
 }
 
 func (tPool *ConversationPool) checkResultChan() {

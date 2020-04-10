@@ -16,13 +16,14 @@ import (
 )
 
 const (
-	//device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	device      string = "ens33"
+	device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	//device      string = "ens33"
 	promiscuous bool = true //是否开启混杂模式
 )
 
 var (
 	resultToGUIChan chan *GUI.FlowResult
+	logOut *log.Logger
 )
 
 func main() {
@@ -41,8 +42,8 @@ func startGUI() {
 	handler = GUI.NewHandler()
 	manager = GUI.NewManager()
 
-	l := log.New(log.Writer(), log.Prefix(), log.Flags())
-	l.Printf("Running app built at %s\n", BuiltAt)
+	logOut = log.New(log.Writer(), log.Prefix(), log.Flags())
+	logOut.Printf("Running app built at %s\n", BuiltAt)
 
 	if err := bootstrap.Run(bootstrap.Options{
 		Asset:    Asset,
@@ -55,7 +56,7 @@ func startGUI() {
 			ElectronSwitches:   []string{"--no-sandbox"},
 		},
 		Debug:  *Debug,
-		Logger: l,
+		Logger: logOut,
 		MenuOptions: []*astilectron.MenuItemOptions{{
 			Label: astikit.StrPtr("File"),
 			SubMenu: []*astilectron.MenuItemOptions{
@@ -91,7 +92,7 @@ func startGUI() {
 			},
 		}},
 	}); err != nil {
-		l.Fatal(errors.Wrap(err, "running bootstrap failed"))
+		logOut.Fatal(errors.Wrap(err, "running bootstrap failed"))
 	}
 }
 
