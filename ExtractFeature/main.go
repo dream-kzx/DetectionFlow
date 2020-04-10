@@ -52,6 +52,7 @@ func startGUI() {
 			AppIconDarwinPath:  "resources/icon.icns",
 			AppIconDefaultPath: "resources/icon.png",
 			SingleInstance:     true,
+			ElectronSwitches:   []string{"--no-sandbox"},
 		},
 		Debug:  *Debug,
 		Logger: l,
