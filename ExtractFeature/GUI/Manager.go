@@ -100,6 +100,7 @@ func NewHostResult(flow FlowResult) *HostResult {
 }
 
 func (h *HostResult) add(flow *FlowResult) {
+	h.AttackType = flow.AttackType
 	h.ConnNum++
 	if flow.AttackType == "normal" {
 		h.normalNum++
@@ -125,6 +126,8 @@ func NewConnectionResult(flow FlowResult) *ConnectionResult {
 }
 
 func (c *ConnectionResult) add(flow *FlowResult) {
+	c.AttackType = flow.AttackType
+
 	c.ConnNum++
 	if flow.AttackType == "normal" {
 		c.normalNum++

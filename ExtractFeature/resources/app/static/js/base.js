@@ -100,19 +100,27 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                             if (message.payload == null) {
                                 break
                             }
+
+                            let index;
+                            for (let i in this.menuList[0].connList){
+                                if(this.menuList[0].connList[i].ip === message.payload.ip){
+                                    index = i;
+                                    this.menuList[0].connList.splice(index,1);
+                                    break;
+                                }
+                            }
+
                             this.menuList[0].connList.unshift({
                                 ip: message.payload.ip ,
                                 connNum: message.payload.connNum,
                                 abnormalRate: message.payload.abnormalRate,
                                 attackType: message.payload.attackType,
                             });
-                            if (this.system.currentPanelName == '监控') {
-                                this.system.currentList.unshift({
-                                    ip: message.payload.ip,
-                                    connNum: message.payload.connNum,
-                                    abnormalRate: message.payload.abnormalRate,
-                                    attackType: message.payload.attackType,
-                                })
+                            if (this.system.currentPanelName === '监控') {
+                                this.system.currentList = this.menuList[0].connList;
+                                // this.system.currentGroupConfig = item.groupConfig;
+
+                                this.system.currentPanelName = this.menuList[0].name;
                             }
 
                         case 'connectionList':

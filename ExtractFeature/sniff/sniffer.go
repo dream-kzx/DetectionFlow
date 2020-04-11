@@ -106,6 +106,8 @@ func (sniffer *Sniffer) StartSniffer() {
 			sniffer.conversationPool.DisposePacket(packet)
 		case <-time.After(2 * time.Second):
 			log.Println("2秒内没有连接到达...(sniffer.go 112)")
+			sniffer.conversationPool.checkTimeout(time.Now())
+
 		}
 
 	}

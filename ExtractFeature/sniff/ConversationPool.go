@@ -134,17 +134,23 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 		fiveTuple = baseUtil.FiveTuple{
 			SrcIP:        connMsg.dstIP,
 			DstIP:        connMsg.srcIP,
-			SrcPort:      uint16(tcp.SrcPort),
-			DstPort:      uint16(tcp.DstPort),
+			SrcPort:        uint16(tcp.DstPort),
+			DstPort:      uint16(tcp.SrcPort),
 			ProtocolType: layers.IPProtocolTCP,
 		}
 	}
 
+	if fiveTuple.SrcIP==[...]byte{192,168,122,1} && fiveTuple.DstPort==22{
+		return
+	}
+
+	log.Println(fiveTuple.SrcIP)
 
 	converHash := fiveTuple.FastHash()
 
 	conversation, ok := mapList[converHash]
 	if ok {
+		log.Println(conversation.Flag)
 		tPool.mapQueue.ResetValue(converHash)
 
 		result, finish := conversation.addPacket(tcp, connMsg)
@@ -228,8 +234,6 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 			//case baseUtil.REJ,baseUtil.RSTO,baseUtil.RSTOS0,baseUtil.RSTR:
 			//	is_timedout = (conv->get_last_ts() <= max_tcp_rst);
 			case baseUtil.S0, baseUtil.S1:
-				log.Println(t.LastTime)
-				log.Println(now)
 				isTimeout = interval >= baseUtil.TcpSynTimeout
 
 			case baseUtil.ESTAB:
@@ -240,6 +244,8 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 
 			case baseUtil.S2F, baseUtil.S3F:
 				isTimeout = interval >= baseUtil.TcpLastAckTimeout
+			case baseUtil.OTH:
+				isTimeout = interval >= baseUtil.TcpFinTimeout
 			}
 
 			if isTimeout {

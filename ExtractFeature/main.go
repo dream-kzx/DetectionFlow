@@ -16,26 +16,31 @@ import (
 )
 
 const (
-	device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	//device      string = "ens33"
-	promiscuous bool = true //是否开启混杂模式
+	// device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	device      string = "ens33"
+	promiscuous bool = false //是否开启混杂模式
 )
 
 var (
 	resultToGUIChan chan *GUI.FlowResult
 	logOut *log.Logger
+	GUIStart bool = false
 )
 
 func main() {
 
 	featureChan := make(chan *flowFeature.FlowFeature, 5)
 
-	resultToGUIChan = make(chan *GUI.FlowResult, 10)
 
 	go PredictFLowInFeature(featureChan)
-	go snifferAndExtract(featureChan)
+	if GUIStart{
+		resultToGUIChan = make(chan *GUI.FlowResult, 10)
+		go snifferAndExtract(featureChan)
 
-	startGUI()
+		startGUI()
+	}else{
+		snifferAndExtract(featureChan)
+	}
 }
 
 func startGUI() {
@@ -142,12 +147,15 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			log.Println(feature.DstPort, "   ", feature.DstIP)
 			log.Println(feature.FeatureToString())
 
-			flowResult := new(GUI.FlowResult)
-			flowResult.SrcIP = ipToString(feature.SrcIP)
-			flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
-			flowResult.AttackType = attackList[label]
+			if GUIStart{
+				flowResult := new(GUI.FlowResult)
+				flowResult.SrcIP = ipToString(feature.SrcIP)
+				flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
+				flowResult.AttackType = attackList[label]
 
-			resultToGUIChan <- flowResult
+				resultToGUIChan <- flowResult
+			}
+
 		}
 
 	}
