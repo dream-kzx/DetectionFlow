@@ -17,6 +17,10 @@ func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) {
 	u.packetSum++
 
 	if u.packetSum == 1 {
+		if u.SrcIP == config.SERVERIP{
+			u.SrcIP,u.DstIP = u.DstIP,u.SrcIP
+		}
+
 		u.StartTime = connMsg.Start
 		u.Service = GetUDPServiceType(u.FiveTuple)
 

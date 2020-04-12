@@ -49,10 +49,6 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                     name: "监控", active: true,
                     connList: []
                 },
-                {
-                    name: "处理记录", active: false,
-                    connList: []
-                }
             ],
             system: system,
         },
@@ -158,7 +154,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                                 connNum: message.payload.connNum,
                                 abnormalRate: message.payload.abnormalRate,
                                 attackType: message.payload.attackType,
-                                enabled: false,
+                                enabled: message.payload.enabled,
                             });
                             if (this.system.currentPanelName === '监控') {
                                 this.system.currentList = this.menuList[0].connList;
@@ -166,6 +162,8 @@ Server.prototype.sendMessage = function (name, payload, callback) {
 
                                 this.system.currentPanelName = this.menuList[0].name;
                             }
+			    console.log(this.system.currentList)
+			    break;
 
                         case 'connectionList':
                     }
