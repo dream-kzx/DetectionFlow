@@ -324,6 +324,7 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 				delete(tPool.ICMPList, v)
 			}
 		}else{
+			mapQueue.RemoveValue(v)
 			log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
 		}
 	}
