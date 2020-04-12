@@ -9,7 +9,6 @@ import (
 
 type Handler struct {
 	Parameter *Parameters
-	blackList map[string]interface{}
 	manager   *Manager
 }
 
@@ -17,7 +16,6 @@ func NewHandler(manager *Manager) *Handler {
 	handle := new(Handler)
 	handle.manager = manager
 	handle.Parameter = NewParameters()
-	handle.blackList = make(map[string]interface{})
 	return handle
 }
 

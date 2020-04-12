@@ -12,6 +12,7 @@ type Result interface {
 
 type Manager struct {
 	flowList       []*FlowResult
+	BlackList      map[string]interface{}
 	connectionList map[string]*ConnectionResult
 	hostList       map[string]*HostResult
 	W              *astilectron.Window
@@ -21,10 +22,13 @@ func NewManager() *Manager {
 	flowList := make([]*FlowResult, 0, 100)
 	connectionList := make(map[string]*ConnectionResult, 100)
 	hostList := make(map[string]*HostResult, 100)
+	blackList := make(map[string]interface{})
+
 	return &Manager{
 		flowList:       flowList,
 		connectionList: connectionList,
 		hostList:       hostList,
+		BlackList:      blackList,
 	}
 }
 

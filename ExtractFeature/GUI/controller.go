@@ -18,7 +18,7 @@ func (h *Handler) AddBlackListHandler() Response {
 		return Response{Code: 0, Message: "Ip cannot be empty"}
 	}
 
-	if _, ok := h.blackList[ip]; ok {
+	if _, ok := h.manager.BlackList[ip]; ok {
 		return Response{Code: 1, Message: "success"}
 	}
 
@@ -31,7 +31,8 @@ func (h *Handler) AddBlackListHandler() Response {
 	if ok {
 		host.Enabled = true
 	}
-	h.blackList[ip] = struct{}{}
+
+	h.manager.BlackList[ip] = struct{}{}
 
 	return Response{Code: 1, Message: "success"}
 }
@@ -46,7 +47,7 @@ func (h *Handler) RemoveBlackListHandler() Response {
 		return Response{Code: 0, Message: "Ip cannot be empty"}
 	}
 
-	if _, ok := h.blackList[ip]; !ok {
+	if _, ok := h.manager.BlackList[ip]; !ok {
 		return Response{Code: 1, Message: "success"}
 	}
 
@@ -59,7 +60,7 @@ func (h *Handler) RemoveBlackListHandler() Response {
 	if ok {
 		host.Enabled = false
 	}
-	delete(h.blackList, ip)
+	delete(h.manager.BlackList, ip)
 
 	return Response{Code: 1, Message: "success"}
 }
