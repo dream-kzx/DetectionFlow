@@ -25,7 +25,7 @@ var (
 
 	resultToGUIChan chan *GUI.FlowResult
 	logOut *log.Logger
-	GUIStart bool = true
+	GUIStart bool = false
 )
 
 func init(){
@@ -35,6 +35,7 @@ func init(){
 	}else if osStr == "windows"{
 		device = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
 	}
+
 }
 
 func main() {
@@ -49,12 +50,12 @@ func main() {
 
 		startGUI()
 	}else{
+		manager = GUI.NewManager()
 		snifferAndExtract(featureChan)
 	}
 }
 
 func startGUI() {
-	manager = GUI.NewManager()
 	handler = GUI.NewHandler(manager)
 
 
@@ -88,7 +89,7 @@ func startGUI() {
 				for flowResult := range resultToGUIChan {
 					manager.AddFlow(flowResult)
 					manager.SendHostMessage(flowResult.SrcIP)
-					manager.SendConnectionMessage(flowResult.SrcIP + flowResult.SrcPort)
+					// manager.SendConnectionMessage(flowResult.SrcIP + flowResult.SrcPort)
 				}
 
 			}()
@@ -158,13 +159,17 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			log.Println(feature.DstPort, "   ", feature.DstIP)
 			log.Println(feature.FeatureToString())
 
-			if GUIStart{
-				flowResult := new(GUI.FlowResult)
-				flowResult.SrcIP = ipToString(feature.SrcIP)
-				flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
-				flowResult.AttackType = attackList[label]
 
+			flowResult := new(GUI.FlowResult)
+			flowResult.SrcIP = ipToString(feature.SrcIP)
+			flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
+			flowResult.AttackType = attackList[label]
+
+
+			if GUIStart{
 				resultToGUIChan <- flowResult
+			}else{
+				manager.AddFlow(flowResult)
 			}
 
 		}

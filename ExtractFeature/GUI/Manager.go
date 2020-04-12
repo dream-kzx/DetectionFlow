@@ -66,11 +66,23 @@ func (manager *Manager) AddFlow(flow *FlowResult) {
 	host, ok := manager.hostList[key]
 	if ok {
 		host.add(flow)
+
+		abnoramlNum := host.GetAbnormalNum()
+		log.Println(abnoramlNum)
+		if abnoramlNum >1000{
+			log.Println("》》》》》》》》》》》》》》》》》》》》》》》》》》》》》》加入黑名单")
+			err:=addFireWall(key)
+			if err!=nil{
+				log.Println(err)
+			}
+		}
 	} else {
 		newHost := NewHostResult(*flow)
 		newHost.add(flow)
 		manager.hostList[key] = newHost
 	}
+
+
 }
 
 func (manager *Manager) GetConnection(key string) *ConnectionResult {
@@ -103,6 +115,10 @@ func NewHostResult(flow FlowResult) *HostResult {
 		FlowResult: flow,
 		Enabled:    false,
 	}
+}
+
+func (h HostResult) GetAbnormalNum() uint{
+	return h.abnormalNum
 }
 
 func (h *HostResult) add(flow *FlowResult) {

@@ -9,10 +9,10 @@ let Server = function () {
 //     </template>
 
 Server.prototype.sendMessage = function (name, payload, callback) {
-    console.log("sendMessage:", name, payload);
+    // console.log("sendMessage:", name, payload);
     // send a message to Go
-    astilectron.sendMessage({name: name, payload: payload}, function (message) {
-        console.log("response:", name, message);
+    astilectron.sendMessage({ name: name, payload: payload }, function (message) {
+        // console.log("response:", name, message);
         callback(message.payload)
     });
 };
@@ -58,7 +58,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                 rows.forEach((item) => {
                     this.selectionItemIndexes.push(item.index)
                 });
-                console.log(this.selectionItemIndexes)
+                // console.log(this.selectionItemIndexes)
             },
             tableRowClassName(row) {
                 row.row.index = row.rowIndex;
@@ -92,14 +92,14 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                 this.loadingGroup.menuLoading = false;
             },
             addBlackList: function (ip) {
-                server.sendMessage("addBlackList", {ip: ip}, (message) => {
+                server.sendMessage("addBlackList", { ip: ip }, (message) => {
                     if (message.code === 1) {
                         console.log("加入黑名单成功！")
                     }
                 })
             },
             removeBlackList: function (ip) {
-                server.sendMessage("removeBlackList", {ip: ip}, (message) => {
+                server.sendMessage("removeBlackList", { ip: ip }, (message) => {
                     if (message.code === 1) {
                         console.log("成功移除黑名单！")
                     }
@@ -115,11 +115,8 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                 if (this.system.currentPanelName === '监控') {
                     ip = this.menuList[0].connList[index].ip;
                     enabled = this.menuList[0].connList[index].enabled;
-                } else if (this.system.currentPanelName === "处理记录") {
-
                 }
 
-                console.log(enabled);
                 if (enabled) {
                     this.addBlackList(ip);
                 } else {
@@ -133,7 +130,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
 
                 //listen the message from backend
                 astilectron.onMessage((message) => {
-                    console.log("receive message: ", message.name, message);
+                    // console.log("receive message: ", message.name, message);
                     switch (message.name) {
                         case 'hostList':
                             if (message.payload == null) {
@@ -158,14 +155,11 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                             });
                             if (this.system.currentPanelName === '监控') {
                                 this.system.currentList = this.menuList[0].connList;
-                                // this.system.currentGroupConfig = item.groupConfig;
 
                                 this.system.currentPanelName = this.menuList[0].name;
                             }
-			    console.log(this.system.currentList)
-			    break;
 
-                        case 'connectionList':
+                            break;
                     }
                 });
             })
