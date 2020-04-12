@@ -84,7 +84,7 @@ func ServiceToString(service uint8) string {
 	case baseUtil.SRV_RED_I:
 		return "red_i"
 	case baseUtil.SRV_ECO_I:
-		return "eco_I"
+		return "eco_i"
 	case baseUtil.SRV_TIM_I:
 		return "tim_i"
 	case baseUtil.SRV_OTH_I:

@@ -13,19 +13,29 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"strconv"
+	"runtime"
 )
 
 const (
-	device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	//device      string = "ens33"
 	promiscuous bool = false //是否开启混杂模式
 )
 
 var (
+	device string
+
 	resultToGUIChan chan *GUI.FlowResult
 	logOut *log.Logger
 	GUIStart bool = true
 )
+
+func init(){
+	osStr := runtime.GOOS
+	if osStr == "linux" || osStr == "unix"{
+		device = "ens33"
+	}else if osStr == "windows"{
+		device = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	}
+}
 
 func main() {
 

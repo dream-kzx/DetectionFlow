@@ -21,6 +21,7 @@ type ConversationPool struct {
 	connMsgs     map[IPRefragKey]*ConnMsg
 	TCPList      map[uint64]*TCPConversation
 	UDPList      map[uint64]*UDPConversation
+	ICMPList     map[uint64]*ICMPConversation
 	mapQueue     *KeyQueue
 	resultChan   chan interface{} //接收超时、连接结束的信道，传递的为baseFeature
 	countWindow  *CountWindow
@@ -110,7 +111,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 		}
 
 	default:
-		log.Println("未知的包类型 ConversationPool.go ",ipPacket.Protocol)
+		log.Println("未知的包类型 ConversationPool.go ", ipPacket.Protocol)
 	}
 
 	delete(tPool.connMsgs, ipRefraKey)
@@ -122,7 +123,7 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 
 	var fiveTuple baseUtil.FiveTuple
 
-	if connMsg.srcIP != config.SERVERIP{
+	if connMsg.srcIP != config.SERVERIP {
 		fiveTuple = baseUtil.FiveTuple{
 			SrcIP:        connMsg.srcIP,
 			DstIP:        connMsg.dstIP,
@@ -130,17 +131,17 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 			DstPort:      uint16(tcp.DstPort),
 			ProtocolType: layers.IPProtocolTCP,
 		}
-	}else{
+	} else {
 		fiveTuple = baseUtil.FiveTuple{
 			SrcIP:        connMsg.dstIP,
 			DstIP:        connMsg.srcIP,
-			SrcPort:        uint16(tcp.DstPort),
+			SrcPort:      uint16(tcp.DstPort),
 			DstPort:      uint16(tcp.SrcPort),
 			ProtocolType: layers.IPProtocolTCP,
 		}
 	}
 
-	if fiveTuple.SrcIP==[...]byte{192,168,122,1} && fiveTuple.DstPort==22{
+	if fiveTuple.SrcIP == [...]byte{192, 168, 122, 1} && fiveTuple.DstPort == 22 {
 		return
 	}
 
@@ -211,10 +212,32 @@ func (tPool *ConversationPool) addUDPPacket(udp layers.UDP,
 }
 
 func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
-	icmpConversation := NewICMPConversation()
-	baseFeature := icmpConversation.AddPacket(icmp, msg)
 
-	tPool.resultChan <- baseFeature
+	fiveTuple := baseUtil.FiveTuple{
+		SrcIP:        msg.srcIP,
+		DstIP:        msg.dstIP,
+		SrcPort:      0,
+		DstPort:      0,
+		ProtocolType: layers.IPProtocolICMPv4,
+	}
+
+	converHash := fiveTuple.FastHash()
+
+	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())
+	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I{
+		icmpConversation := NewICMPConversation()
+		baseFeature := icmpConversation.AddPacket(icmp, msg)
+		tPool.resultChan <- baseFeature
+		return
+	}
+
+	conversation, ok := tPool.ICMPList[converHash]
+	if ok{
+		if service == baseUtil.SRV_ECO_I {
+			
+		}
+	}
+
 }
 
 func (tPool *ConversationPool) checkTimeout(now time.Time) {
@@ -300,6 +323,7 @@ func NewConversationPool(featureChan chan *flowFeature.FlowFeature) *Conversatio
 		connMsgs:     make(map[IPRefragKey]*ConnMsg),
 		TCPList:      make(map[uint64]*TCPConversation),
 		UDPList:      make(map[uint64]*UDPConversation),
+		ICMPList:     make(map[uint64]*ICMPConversation),
 		mapQueue:     NewKeyQueue(),
 		resultChan:   make(chan interface{}, 4),
 		countWindow:  NewCountWindow(),
