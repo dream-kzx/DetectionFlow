@@ -225,7 +225,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 
 	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())
 	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I{
-		icmpConversation := NewICMPConversation()
+		icmpConversation := NewICMPConversation(tPool.resultChan)
 		_ = icmpConversation.AddPacket(icmp, msg)
 		icmpConversation.ExtractFeature()
 		return
@@ -236,7 +236,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 		if service == baseUtil.SRV_ECO_I {  //ICMP请求
 			conversation.ExtractFeature()
 
-			newIcmp := NewICMPConversation()
+			newIcmp := NewICMPConversation(tPool.resultChan)
 			newIcmp.AddPacket(icmp,msg)
 			tPool.mapQueue.Push(converHash)
 			tPool.ICMPList[converHash] = newIcmp
@@ -245,7 +245,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 			tPool.mapQueue.RemoveValue(converHash)
 			delete(tPool.ICMPList, converHash)
 
-			newIcmp := NewICMPConversation()
+			newIcmp := NewICMPConversation(tPool.resultChan)
 			newIcmp.AddPacket(icmp,msg)
 			newIcmp.ExtractFeature()
 		} else{//ICMP应答，且是相同的会话
@@ -257,7 +257,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 			}
 		}
 	}else{
-		newIcmp := NewICMPConversation()
+		newIcmp := NewICMPConversation(tPool.resultChan)
 		if service == baseUtil.SRV_ECO_I{ //ICMP请求
 			newIcmp.AddPacket(icmp,msg)
 			tPool.mapQueue.Push(converHash)

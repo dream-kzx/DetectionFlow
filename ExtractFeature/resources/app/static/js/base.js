@@ -125,9 +125,9 @@ Server.prototype.sendMessage = function (name, payload, callback) {
 
                 console.log(enabled);
                 if (enabled) {
-                    addBlackList(ip);
+                    this.addBlackList(ip);
                 } else {
-                    removeBlackList(ip);
+                    this.removeBlackList(ip);
                 }
 
             }

@@ -9,13 +9,15 @@ import (
 
 type ICMPConversation struct {
 	Conversation
+	poolChan chan interface{} //用于结束后返回结果到pool
 	PacketSum uint
 	Direction uint8 //server -> client 0, clinet -> server 1
 }
 
-func NewICMPConversation() *ICMPConversation {
+func NewICMPConversation(poolChan chan interface{}) *ICMPConversation {
 	return &ICMPConversation{
 		Conversation: Conversation{},
+		poolChan: poolChan,
 	}
 }
 
@@ -103,11 +105,11 @@ func (i *ICMPConversation) IsSameConversation(msg ConnMsg) bool {
 
 }
 
-func (i *ICMPConversation) ExtractFeature() *flowFeature.TCPBaseFeature {
+func (i *ICMPConversation) ExtractFeature(){
 	duration := i.LastTime.Sub(i.StartTime)
 
 	tcpBaseFeature := flowFeature.NewTcpBaseFeature(i.FiveTuple, uint(duration), i.FiveTuple.ProtocolType,
 		i.Service, i.Flag, i.SrcBytes, i.DstBytes, i.Land, i.WrongFragment, i.Urgent)
 
-	return tcpBaseFeature
+	i.poolChan <- tcpBaseFeature
 }
