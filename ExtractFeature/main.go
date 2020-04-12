@@ -16,15 +16,15 @@ import (
 )
 
 const (
-	// device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	device      string = "ens33"
+	device string = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+	//device      string = "ens33"
 	promiscuous bool = false //是否开启混杂模式
 )
 
 var (
 	resultToGUIChan chan *GUI.FlowResult
 	logOut *log.Logger
-	GUIStart bool = false
+	GUIStart bool = true
 )
 
 func main() {
@@ -44,8 +44,9 @@ func main() {
 }
 
 func startGUI() {
-	handler = GUI.NewHandler()
 	manager = GUI.NewManager()
+	handler = GUI.NewHandler(manager)
+
 
 	logOut = log.New(log.Writer(), log.Prefix(), log.Flags())
 	logOut.Printf("Running app built at %s\n", BuiltAt)

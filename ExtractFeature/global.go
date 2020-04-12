@@ -10,5 +10,5 @@ var (
 	BuiltAt string
 	Debug   = flag.Bool("d", true, "enables the debug mode")
 	manager *GUI.Manager
-	handler       *GUI.Handler
+	handler *GUI.Handler
 )

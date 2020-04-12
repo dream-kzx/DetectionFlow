@@ -9,10 +9,13 @@ import (
 
 type Handler struct {
 	Parameter *Parameters
+	blackList map[string]interface{}
+	manager   *Manager
 }
 
-func NewHandler() *Handler {
+func NewHandler(manager *Manager) *Handler {
 	handle := new(Handler)
+	handle.manager = manager
 	return handle
 }
 

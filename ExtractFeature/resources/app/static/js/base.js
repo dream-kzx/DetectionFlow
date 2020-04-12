@@ -1,6 +1,13 @@
 let Server = function () {
 };
 
+// <template slot-scope="scope">
+//     <el-button icon="el-icon-plus" @click="addBlackList(scope.$index)" plain={true}
+// :loading="loadingGroup.addBlackLoading" size = "mini">加入黑名单
+//     </el-button>
+//
+//     </template>
+
 Server.prototype.sendMessage = function (name, payload, callback) {
     console.log("sendMessage:", name, payload);
     // send a message to Go
@@ -87,6 +94,42 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                     }
                 }
                 this.loadingGroup.menuLoading = false;
+            },
+            addBlackList: function (ip) {
+                server.sendMessage("addBlackList", {ip: ip}, (message) => {
+                    if (message.code === 1) {
+                        console.log("加入黑名单成功！")
+                    }
+                })
+            },
+            removeBlackList: function (ip) {
+                server.sendMessage("removeBlackList", {ip: ip}, (message) => {
+                    if (message.code === 1) {
+                        console.log("成功移除黑名单！")
+                    }
+                })
+            },
+            fixIndexOffset: function (index) {
+                return (this.page.currentPage - 1) * this.page.pageSize + index
+            },
+            changeHost: function (value, index) {
+                let ip;
+                let enabled;
+                index = this.fixIndexOffset(index);
+                if (this.system.currentPanelName === '监控') {
+                    ip = this.menuList[0].connList[index].ip;
+                    enabled = this.menuList[0].connList[index].enabled;
+                } else if (this.system.currentPanelName === "处理记录") {
+
+                }
+
+                console.log(enabled);
+                if (enabled) {
+                    addBlackList(ip);
+                } else {
+                    removeBlackList(ip);
+                }
+
             }
         },
         created() {
@@ -102,19 +145,20 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                             }
 
                             let index;
-                            for (let i in this.menuList[0].connList){
-                                if(this.menuList[0].connList[i].ip === message.payload.ip){
+                            for (let i in this.menuList[0].connList) {
+                                if (this.menuList[0].connList[i].ip === message.payload.ip) {
                                     index = i;
-                                    this.menuList[0].connList.splice(index,1);
+                                    this.menuList[0].connList.splice(index, 1);
                                     break;
                                 }
                             }
 
                             this.menuList[0].connList.unshift({
-                                ip: message.payload.ip ,
+                                ip: message.payload.ip,
                                 connNum: message.payload.connNum,
                                 abnormalRate: message.payload.abnormalRate,
                                 attackType: message.payload.attackType,
+                                enabled: false,
                             });
                             if (this.system.currentPanelName === '监控') {
                                 this.system.currentList = this.menuList[0].connList;

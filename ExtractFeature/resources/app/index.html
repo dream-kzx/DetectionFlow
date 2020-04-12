@@ -34,17 +34,17 @@
             </el-header>
             <el-main>
                 <el-table v-if="system.currentPanelName == '监控'"
-                        ref="multipleTable"
-                        :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
-                        v-loading="loadingGroup.menuLoading"
-                        stripe
-                        empty-text="No results"
-                        tooltip-effect="dark"
-                        show-overflow-tooltip
-                        :row-class-name="tableRowClassName"
-                        @selection-change="handleSelectionChange"
-                        height="100%"
-                        style="width: 100%; ">
+                          ref="multipleTable"
+                          :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
+                          v-loading="loadingGroup.menuLoading"
+                          stripe
+                          empty-text="No results"
+                          tooltip-effect="dark"
+                          show-overflow-tooltip
+                          :row-class-name="tableRowClassName"
+                          @selection-change="handleSelectionChange"
+                          height="100%"
+                          style="width: 100%; ">
                     <el-table-column
                             type="selection"
                             align="center"
@@ -80,28 +80,30 @@
                     </el-table-column>
                     <el-table-column
                             resizable="true"
-                            label="-"
+                            label="黑名单"
                             align="center">
                         <template slot-scope="scope">
-                            <el-button icon="el-icon-plus" @click="deleteHost(scope.$index)" plain={true}
-                               :loading="loadingGroup.addBlackLoading" size = "mini">加入黑名单
-                            </el-button>
-
+                            <el-switch
+                                    v-model="scope.row.enabled"
+                                    active-color="#13ce66"
+                                    @change="changeHost($event, scope.$index)"
+                                    inactive-color="#ff4949">
+                            </el-switch>
                         </template>
                     </el-table-column>
                 </el-table>
                 <el-table v-else-if="system.currentPanelName == '处理记录'"
-                        ref="multipleTable"
-                        :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
-                        v-loading="loadingGroup.menuLoading"
-                        stripe
-                        empty-text="No results"
-                        tooltip-effect="dark"
-                        show-overflow-tooltip
-                        :row-class-name="tableRowClassName"
-                        @selection-change="handleSelectionChange"
-                        height="100%"
-                        style="width: 100%; ">
+                          ref="multipleTable"
+                          :data="system.currentList.slice((page.currentPage - 1) * page.pageSize, page.currentPage * page.pageSize)"
+                          v-loading="loadingGroup.menuLoading"
+                          stripe
+                          empty-text="No results"
+                          tooltip-effect="dark"
+                          show-overflow-tooltip
+                          :row-class-name="tableRowClassName"
+                          @selection-change="handleSelectionChange"
+                          height="100%"
+                          style="width: 100%; ">
                     <el-table-column
                             type="selection"
                             align="center"
@@ -141,7 +143,7 @@
                             align="center">
                         <template slot-scope="scope">
                             <el-button icon="el-icon-plus" @click="deleteHost(scope.$index)" plain={true}
-                               :loading="loadingGroup.removeBlackLoading" size = "mini">移出黑名单
+                                       :loading="loadingGroup.removeBlackLoading" size="mini">移出黑名单
                             </el-button>
 
                         </template>

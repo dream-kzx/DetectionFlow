@@ -87,15 +87,17 @@ func (manager *Manager) GetHost(key string) *HostResult {
 
 type HostResult struct {
 	FlowResult
-	ConnNum      uint    `json:"connNum"`
+	ConnNum      uint `json:"connNum"`
 	normalNum    uint
 	abnormalNum  uint
 	AbnormalRate float64 `json:"abnormalRate"`
+	Enabled      bool    `json:"enabled"`
 }
 
 func NewHostResult(flow FlowResult) *HostResult {
 	return &HostResult{
 		FlowResult: flow,
+		Enabled:    false,
 	}
 }
 
@@ -113,15 +115,17 @@ func (h *HostResult) add(flow *FlowResult) {
 
 type ConnectionResult struct {
 	FlowResult
-	ConnNum      uint    `json:"connNum"`
+	ConnNum      uint `json:"connNum"`
 	normalNum    uint
 	abnormalNum  uint
 	AbnormalRate float64 `json:"abnormalRate"`
+	Enabled      bool    `json:"enabled"`
 }
 
 func NewConnectionResult(flow FlowResult) *ConnectionResult {
 	return &ConnectionResult{
 		FlowResult: flow,
+		Enabled:    false,
 	}
 }
 
