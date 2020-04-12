@@ -226,15 +226,45 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())
 	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I{
 		icmpConversation := NewICMPConversation()
-		baseFeature := icmpConversation.AddPacket(icmp, msg)
-		tPool.resultChan <- baseFeature
+		_ = icmpConversation.AddPacket(icmp, msg)
+		icmpConversation.ExtractFeature()
 		return
 	}
 
 	conversation, ok := tPool.ICMPList[converHash]
 	if ok{
-		if service == baseUtil.SRV_ECO_I {
-			
+		if service == baseUtil.SRV_ECO_I {  //ICMP请求
+			conversation.ExtractFeature()
+
+			newIcmp := NewICMPConversation()
+			newIcmp.AddPacket(icmp,msg)
+			tPool.mapQueue.Push(converHash)
+			tPool.ICMPList[converHash] = newIcmp
+		}else if service == baseUtil.SRV_ECR_I && !conversation.IsSameConversation(msg){//ICMP应答，但不是相同的会话
+			conversation.ExtractFeature()
+			tPool.mapQueue.RemoveValue(converHash)
+			delete(tPool.ICMPList, converHash)
+
+			newIcmp := NewICMPConversation()
+			newIcmp.AddPacket(icmp,msg)
+			newIcmp.ExtractFeature()
+		} else{//ICMP应答，且是相同的会话
+			finish := conversation.AddPacket(icmp,msg)
+			if finish{
+				conversation.ExtractFeature()
+				tPool.mapQueue.RemoveValue(converHash)
+				delete(tPool.ICMPList,converHash)
+			}
+		}
+	}else{
+		newIcmp := NewICMPConversation()
+		if service == baseUtil.SRV_ECO_I{ //ICMP请求
+			newIcmp.AddPacket(icmp,msg)
+			tPool.mapQueue.Push(converHash)
+			tPool.ICMPList[converHash] = newIcmp
+		}else{ //ICMP应答
+			newIcmp.AddPacket(icmp,msg)
+			newIcmp.ExtractFeature()
 		}
 	}
 
@@ -246,8 +276,10 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 	forList := tPool.mapQueue.List()
 
 	for _, v := range forList {
-		t, ok := tPool.TCPList[v]
-		if ok {
+		t, ok1 := tPool.TCPList[v]
+		u, ok2 := tPool.UDPList[v]
+		icmp, ok3 := tPool.ICMPList[v]
+		if ok1{
 			interval := now.Sub(t.LastTime)
 			isTimeout := false
 			//如果连接超时，则将记录连接的key从队列中出队，
@@ -276,20 +308,23 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 				t.ExtractBaseFeature()
 				delete(tPool.TCPList, v)
 			}
-		} else {
-			//如果不是TCP连接列表中的连接，则在UDP连接列表中进行查询
-			u, ok := tPool.UDPList[v]
-			if ok {
-				interval := now.Sub(u.LastTime)
+		}else if ok2{
+			interval := now.Sub(u.LastTime)
 
-				if interval >= baseUtil.UdpTimeout {
-					mapQueue.RemoveValue(v)
-					u.ExtractBaseFeature()
-					delete(tPool.UDPList, v)
-				}
-			} else {
-				log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
+			if interval >= baseUtil.UdpTimeout {
+				mapQueue.RemoveValue(v)
+				u.ExtractBaseFeature()
+				delete(tPool.UDPList, v)
 			}
+		}else if ok3{
+			interval := now.Sub(icmp.LastTime)
+			if interval >= baseUtil.IcmpTimeout{
+				mapQueue.RemoveValue(v)
+				icmp.ExtractFeature()
+				delete(tPool.ICMPList, v)
+			}
+		}else{
+			log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
 		}
 	}
 
