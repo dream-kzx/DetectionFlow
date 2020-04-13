@@ -46,15 +46,19 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 		return
 	}
 
+	var srcIp, dstIp [4]byte
+	copy(srcIp[:4], ipv4Layer.SrcIP)
+	copy(dstIp[:4], ipv4Layer.DstIP)
+
 	//如果是黑名单的ip，直接跳出
-	if _, ok := BlackList[string(ipv4Layer.SrcIP)];ok{
+	if _, ok := BlackList[baseUtil.IpToString(srcIp)];ok{
 		tPool.blackIndex++
 		if tPool.blackIndex>500{
 			tPool.checkTimeout(packet.Metadata().Timestamp)
 			tPool.blackIndex = 0
 		}
 		return
-	}else if _,ok := BlackList[string(ipv4Layer.DstIP)];ok{
+	}else if _,ok := BlackList[baseUtil.IpToString(dstIp)];ok{
 		tPool.blackIndex++
 		if tPool.blackIndex>500{
 			tPool.checkTimeout(packet.Metadata().Timestamp)
@@ -65,9 +69,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 
 	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
 	//通过IP数据包中，每个分片的ID是唯一标识的
-	var srcIp, dstIp [4]byte
-	copy(srcIp[:4], ipv4Layer.SrcIP)
-	copy(dstIp[:4], ipv4Layer.DstIP)
+
 
 	ipRefraKey := IPRefragKey{
 		Id:    ipv4Layer.Id,
@@ -164,13 +166,13 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 		return
 	}
 
-	log.Println(fiveTuple.SrcIP)
+	log.Println(fiveTuple.SrcIP, "    conversationPool.go 167")
 
 	converHash := fiveTuple.FastHash()
 
 	conversation, ok := mapList[converHash]
 	if ok {
-		log.Println(conversation.Flag)
+		log.Println(conversation.Flag,"    conversationPool.go 173")
 		tPool.mapQueue.ResetValue(converHash)
 
 		result, finish := conversation.addPacket(tcp, connMsg)

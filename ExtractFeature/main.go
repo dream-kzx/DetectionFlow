@@ -45,17 +45,18 @@ func init() {
 
 	//黑名单到sniffer捕获ip的操作信道
 	BlackToSnifferChan = make(chan *GUI.OperateSniffer)
-	manager = GUI.NewManager()
-	handler = GUI.NewHandler(manager, BlackToSnifferChan, AutoFilter)
 }
 
 func main() {
-	AutoFilter = flag.Bool("autoFilter", false, "是否在异常连接数达到阈值时，自动加IP假如黑名单")
+	AutoFilter = flag.Bool("autoFilter", true, "是否在异常连接数达到阈值时，自动加IP假如黑名单")
 	GUIStart = flag.Bool("guiStart", false, "是否启动GUI界面")
 	WriteFile = flag.Bool("writeFile", false, "是否允许保存pcap，feature文件")
 
 	//特征结构-->预测的chan
 	featureToPredictChan := make(chan *flowFeature.FlowFeature, 5)
+
+	manager = GUI.NewManager()
+	handler = GUI.NewHandler(manager, BlackToSnifferChan, AutoFilter)
 
 	//启动预测模块
 	go PredictFLowInFeature(featureToPredictChan)
@@ -161,9 +162,9 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			if *WriteFile {
 				data := feature.FeatureToString()
 				data += attackList[label] + ","
-				data += ipToString(feature.SrcIP) + ","
+				data += baseUtil.IpToString(feature.SrcIP) + ","
 				data += strconv.Itoa(int(feature.SrcPort)) + ","
-				data += ipToString(feature.DstIP) + ","
+				data += baseUtil.IpToString(feature.DstIP) + ","
 				data += strconv.Itoa(int(feature.DstPort))
 				data += "\n"
 				// log.Println(data)
@@ -178,7 +179,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 
 			//
 			flowResult := new(GUI.FlowResult)
-			flowResult.SrcIP = ipToString(feature.SrcIP)
+			flowResult.SrcIP = baseUtil.IpToString(feature.SrcIP)
 			flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
 			flowResult.AttackType = attackList[label]
 
@@ -193,11 +194,4 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	}
 }
 
-func ipToString(ip [4]byte) string {
-	data := ""
-	data += strconv.Itoa(int(ip[0])) + "."
-	data += strconv.Itoa(int(ip[1])) + "."
-	data += strconv.Itoa(int(ip[2])) + "."
-	data += strconv.Itoa(int(ip[3]))
-	return data
-}
+

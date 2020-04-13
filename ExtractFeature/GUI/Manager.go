@@ -59,18 +59,22 @@ func (manager *Manager) AddFlow(flow *FlowResult) {
 		abnormalNum := host.GetAbnormalNum()
 		log.Println(abnormalNum)
 		if abnormalNum >1000 && *AutoFilter{
-			log.Println("》》》》》》》》》》》》》》》》》》》》》》》》》》》》》》加入黑名单")
-			err:=addFireWall(key)
-			if err!=nil{
-				log.Println(err)
-			}else{
-				operateSniffer := &OperateSniffer{
-					Operate: 1,
-					IP:      key,
-				}
-				BlackToSnifferChan <- operateSniffer
-			}
 
+			_, ok := manager.BlackList[key]
+			if !ok {
+				log.Println("》》》》》》》》》》》》》》》》》》》》》》》》》》》》》》加入黑名单")
+				err:=addFireWall(key)
+				if err!=nil{
+					log.Println(err)
+				}else{
+					operateSniffer := &OperateSniffer{
+						Operate: 1,
+						IP:      key,
+					}
+					BlackToSnifferChan <- operateSniffer
+				}
+				manager.BlackList[key]=struct{}{}
+			}
 		}
 	} else {
 		newHost := NewHostResult(*flow)

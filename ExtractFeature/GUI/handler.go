@@ -3,11 +3,14 @@ package GUI
 import (
 	"FlowDetection/config"
 	"encoding/json"
-	"github.com/asticode/go-astilectron"
-	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
+
+	"github.com/ThomasRooney/gexpect"
+	"github.com/asticode/go-astilectron"
+	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 )
 
 var (

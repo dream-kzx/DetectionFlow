@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	BlackList = make(map[string]interface{})
+	BlackList = make(map[string]interface{},100)
 }
 
 func receiveBlack() {
