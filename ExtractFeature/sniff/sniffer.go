@@ -1,6 +1,7 @@
 package sniff
 
 import (
+	"FlowDetection/GUI"
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"fmt"
@@ -19,6 +20,35 @@ const (
 	snapshotLen uint32 = 1526
 	timeout            = 1 * time.Second
 )
+
+var (
+	BlackToSnifferChan chan *GUI.OperateSniffer
+	BlackList          map[string]interface{}
+	WriteFile          *bool
+	wPcap              *pcapgo.Writer
+)
+
+func init() {
+	BlackList = make(map[string]interface{})
+}
+
+func receiveBlack() {
+	for {
+		select {
+		case black, ok := <-BlackToSnifferChan:
+			if !ok {
+				log.Fatal("黑名单接收信道出现问题")
+			}
+
+			_, ok = BlackList[black.IP]
+			if !ok && black.Operate == 1 {
+				BlackList[black.IP] = struct{}{}
+			} else if ok && black.Operate == 0 {
+				delete(BlackList, black.IP)
+			}
+		}
+	}
+}
 
 //usage:
 //	NewSniffer()
@@ -77,19 +107,25 @@ type ConnMsg struct {
 	wrong        int
 }
 
-func (sniffer *Sniffer) StartSniffer() {
+func (sniffer *Sniffer) StartSniffer(blackToSnifferChan chan *GUI.OperateSniffer, writeFile *bool) {
 	defer sniffer.handle.Close()
 
+	go receiveBlack()
 	go sniffer.conversationPool.checkResultChan()
 
+	BlackToSnifferChan = blackToSnifferChan
+	WriteFile = writeFile
+
 	//写PCAP文件
-	if baseUtil.CheckFileIsExist("test.pcap") {
-		_ = os.Remove("test.pcap")
+	if *WriteFile {
+		if baseUtil.CheckFileIsExist("test.pcap") {
+			_ = os.Remove("test.pcap")
+		}
+		f, _ := os.Create("test.pcap")
+		wPcap = pcapgo.NewWriter(f)
+		_ = wPcap.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
+		defer f.Close()
 	}
-	f, _ := os.Create("test.pcap")
-	w := pcapgo.NewWriter(f)
-	_ = w.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
-	defer f.Close()
 
 	packetSource := gopacket.NewPacketSource(sniffer.handle, sniffer.handle.LinkType())
 	packets := packetSource.Packets()
@@ -97,10 +133,12 @@ func (sniffer *Sniffer) StartSniffer() {
 	for {
 		select {
 		case packet := <-packets:
-
-			err := w.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
-			if err != nil {
-				log.Println(err)
+			//写PCAP文件
+			if *WriteFile {
+				err := wPcap.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
+				if err != nil {
+					log.Println(err)
+				}
 			}
 
 			sniffer.conversationPool.DisposePacket(packet)
@@ -113,4 +151,3 @@ func (sniffer *Sniffer) StartSniffer() {
 	}
 
 }
-

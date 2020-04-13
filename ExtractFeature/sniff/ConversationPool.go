@@ -27,6 +27,8 @@ type ConversationPool struct {
 	countWindow  *CountWindow
 	timeWindow   *TimeWindow
 	featureChan  chan *flowFeature.FlowFeature //返回特征的信道，传递的信道用来预测流量类型
+
+	blackIndex uint //用于记录黑名单ip的连接数，达到某一数量执行一次checktimeout，防止服务停止
 }
 
 func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
@@ -41,6 +43,23 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 	ipv4Layer, ok := ipv4.(*layers.IPv4)
 	if !ok {
 		log.Println("cast failed!")
+		return
+	}
+
+	//如果是黑名单的ip，直接跳出
+	if _, ok := BlackList[string(ipv4Layer.SrcIP)];ok{
+		tPool.blackIndex++
+		if tPool.blackIndex>500{
+			tPool.checkTimeout(packet.Metadata().Timestamp)
+			tPool.blackIndex = 0
+		}
+		return
+	}else if _,ok := BlackList[string(ipv4Layer.DstIP)];ok{
+		tPool.blackIndex++
+		if tPool.blackIndex>500{
+			tPool.checkTimeout(packet.Metadata().Timestamp)
+			tPool.blackIndex = 0
+		}
 		return
 	}
 

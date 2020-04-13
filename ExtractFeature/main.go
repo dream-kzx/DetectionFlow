@@ -6,14 +6,15 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"FlowDetection/sniff"
+	"flag"
 	"fmt"
 	"github.com/asticode/go-astikit"
 	"github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"github.com/pkg/errors"
 	"log"
-	"strconv"
 	"runtime"
+	"strconv"
 )
 
 const (
@@ -21,44 +22,55 @@ const (
 )
 
 var (
-	device string
+	device             string
+	BlackToSnifferChan chan *GUI.OperateSniffer
+	resultToGUIChan    chan *GUI.FlowResult
+	logOut             *log.Logger
 
-	resultToGUIChan chan *GUI.FlowResult
-	logOut *log.Logger
-	GUIStart bool = false
+	GUIStart   *bool //使用GUI
+	AutoFilter *bool //自动过滤
+	WriteFile  *bool //写pacp，feature文件
+
+	wf baseUtil.MyWriteFile
 )
 
-func init(){
+func init() {
+
 	osStr := runtime.GOOS
-	if osStr == "linux" || osStr == "unix"{
+	if osStr == "linux" || osStr == "unix" {
 		device = "ens33"
-	}else if osStr == "windows"{
+	} else if osStr == "windows" {
 		device = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
 	}
 
+	//黑名单到sniffer捕获ip的操作信道
+	BlackToSnifferChan = make(chan *GUI.OperateSniffer)
+	manager = GUI.NewManager()
+	handler = GUI.NewHandler(manager, BlackToSnifferChan, AutoFilter)
 }
 
 func main() {
+	AutoFilter = flag.Bool("autoFilter", false, "是否在异常连接数达到阈值时，自动加IP假如黑名单")
+	GUIStart = flag.Bool("guiStart", false, "是否启动GUI界面")
+	WriteFile = flag.Bool("writeFile", false, "是否允许保存pcap，feature文件")
 
-	featureChan := make(chan *flowFeature.FlowFeature, 5)
+	//特征结构-->预测的chan
+	featureToPredictChan := make(chan *flowFeature.FlowFeature, 5)
 
+	//启动预测模块
+	go PredictFLowInFeature(featureToPredictChan)
 
-	go PredictFLowInFeature(featureChan)
-	if GUIStart{
+	if *GUIStart {
 		resultToGUIChan = make(chan *GUI.FlowResult, 10)
-		go snifferAndExtract(featureChan)
+		go snifferAndExtract(featureToPredictChan)
 
 		startGUI()
-	}else{
-		manager = GUI.NewManager()
-		snifferAndExtract(featureChan)
+	} else {
+		snifferAndExtract(featureToPredictChan)
 	}
 }
 
 func startGUI() {
-	handler = GUI.NewHandler(manager)
-
-
 	logOut = log.New(log.Writer(), log.Prefix(), log.Flags())
 	logOut.Printf("Running app built at %s\n", BuiltAt)
 
@@ -89,7 +101,6 @@ func startGUI() {
 				for flowResult := range resultToGUIChan {
 					manager.AddFlow(flowResult)
 					manager.SendHostMessage(flowResult.SrcIP)
-					// manager.SendConnectionMessage(flowResult.SrcIP + flowResult.SrcPort)
 				}
 
 			}()
@@ -125,13 +136,18 @@ func snifferAndExtract(featureChan chan *flowFeature.FlowFeature) {
 	}
 
 	fmt.Println("开始监听：")
-	sniffer.StartSniffer()
+
+	sniffer.StartSniffer(BlackToSnifferChan, WriteFile)
 }
 
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
-	wf := baseUtil.MyWriteFile{}
-	wf.OpenFile("feature.csv")
-	write := true
+
+	//写feature.csv文件
+	if *WriteFile {
+		wf = baseUtil.MyWriteFile{}
+		wf.OpenFile("feature.csv")
+	}
+
 	predictFlow := CallPredict.NewPredictFlow(":50051")
 
 	attackList := []string{"normal", "DOS", "PROBE"}
@@ -139,36 +155,36 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 	for {
 		select {
 		case feature := <-featureChan:
-			// feature.Print()
-
+			//grpc调用机器学习算法，预测流量类型
 			label := predictFlow.Predict(feature)
-			if write {
+
+			if *WriteFile {
 				data := feature.FeatureToString()
 				data += attackList[label] + ","
-				data += ipToString(feature.SrcIP)+","
+				data += ipToString(feature.SrcIP) + ","
 				data += strconv.Itoa(int(feature.SrcPort)) + ","
-				data += ipToString(feature.DstIP)+","
+				data += ipToString(feature.DstIP) + ","
 				data += strconv.Itoa(int(feature.DstPort))
 				data += "\n"
 				// log.Println(data)
 				wf.Write(data)
 			}
+
 			log.Println("该攻击类型为：", attackList[label])
 
 			log.Println(feature.SrcPort, "   ", feature.SrcIP)
 			log.Println(feature.DstPort, "   ", feature.DstIP)
 			log.Println(feature.FeatureToString())
 
-
+			//
 			flowResult := new(GUI.FlowResult)
 			flowResult.SrcIP = ipToString(feature.SrcIP)
 			flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
 			flowResult.AttackType = attackList[label]
 
-
-			if GUIStart{
+			if *GUIStart {
 				resultToGUIChan <- flowResult
-			}else{
+			} else {
 				manager.AddFlow(flowResult)
 			}
 
