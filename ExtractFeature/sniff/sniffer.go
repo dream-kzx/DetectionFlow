@@ -92,7 +92,7 @@ func (sniffer *Sniffer) SetSnifferSource(sourceName string,
 
 	//如果是嗅探网卡
 	if sourceType == 1 {
-		err := sniffer.SetSnifferInterface(sourceName, promiscuous)
+		err := sniffer.setSnifferInterface(sourceName, promiscuous)
 		if err != nil {
 			return err
 		}
