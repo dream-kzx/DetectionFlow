@@ -1,11 +1,18 @@
 let Server = function () {
 };
 
+// <template slot-scope="scope">
+//     <el-button icon="el-icon-plus" @click="addBlackList(scope.$index)" plain={true}
+// :loading="loadingGroup.addBlackLoading" size = "mini">加入黑名单
+//     </el-button>
+//
+//     </template>
+
 Server.prototype.sendMessage = function (name, payload, callback) {
-    console.log("sendMessage:", name, payload);
+    // console.log("sendMessage:", name, payload);
     // send a message to Go
-    astilectron.sendMessage({name: name, payload: payload}, function (message) {
-        console.log("response:", name, message);
+    astilectron.sendMessage({ name: name, payload: payload }, function (message) {
+        // console.log("response:", name, message);
         callback(message.payload)
     });
 };
@@ -17,26 +24,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
         // current group config
         currentGroupConfig: {},
         // table rows depended on this variable
-        currentList: [{ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-            {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-        ], //[{ip:"1", domain: "a", enabled: true}],
+        currentList: [], //[{ip:"1", domain: "a", enabled: true}],
         // put system hosts at here
         systemHosts: []
     };
@@ -59,49 +47,8 @@ Server.prototype.sendMessage = function (name, payload, callback) {
             menuList: [
                 {
                     name: "监控", active: true,
-                    connList: [
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                        {ip: "192.168.1.1", connNum: 15, abnormalRate: 0.88, attackType: "Probe"},
-                    ]
+                    connList: []
                 },
-                {
-                    name: "处理记录", active: false,
-                    connList: [
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                        {ip: "192.168.2.12", connNum: 13, abnormalRate: 0.88, attackType: "DOS"},
-                    ]
-                }
             ],
             system: system,
         },
@@ -111,7 +58,7 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                 rows.forEach((item) => {
                     this.selectionItemIndexes.push(item.index)
                 });
-                console.log(this.selectionItemIndexes)
+                // console.log(this.selectionItemIndexes)
             },
             tableRowClassName(row) {
                 row.row.index = row.rowIndex;
@@ -143,35 +90,75 @@ Server.prototype.sendMessage = function (name, payload, callback) {
                     }
                 }
                 this.loadingGroup.menuLoading = false;
+            },
+            addBlackList: function (ip) {
+                server.sendMessage("addBlackList", { ip: ip }, (message) => {
+                    if (message.code === 1) {
+                        console.log("加入黑名单成功！")
+                    }
+                })
+            },
+            removeBlackList: function (ip) {
+                server.sendMessage("removeBlackList", { ip: ip }, (message) => {
+                    if (message.code === 1) {
+                        console.log("成功移除黑名单！")
+                    }
+                })
+            },
+            fixIndexOffset: function (index) {
+                return (this.page.currentPage - 1) * this.page.pageSize + index
+            },
+            changeHost: function (value, index) {
+                let ip;
+                let enabled;
+                index = this.fixIndexOffset(index);
+                if (this.system.currentPanelName === '监控') {
+                    ip = this.menuList[0].connList[index].ip;
+                    enabled = this.menuList[0].connList[index].enabled;
+                }
+
+                if (enabled) {
+                    this.addBlackList(ip);
+                } else {
+                    this.removeBlackList(ip);
+                }
+
             }
         },
         created() {
             document.addEventListener('astilectron-ready', () => {
-
                 //listen the message from backend
                 astilectron.onMessage((message) => {
-                    console.log("receive message: ", message.name, message);
+                    // console.log("receive message: ", message.name, message);
                     switch (message.name) {
                         case 'hostList':
                             if (message.payload == null) {
                                 break
                             }
+
+                            let index;
+                            for (let i in this.menuList[0].connList) {
+                                if (this.menuList[0].connList[i].ip === message.payload.ip) {
+                                    index = i;
+                                    this.menuList[0].connList.splice(index, 1);
+                                    break;
+                                }
+                            }
+
                             this.menuList[0].connList.unshift({
-                                ip: message.payload.ip ,
+                                ip: message.payload.ip,
                                 connNum: message.payload.connNum,
                                 abnormalRate: message.payload.abnormalRate,
                                 attackType: message.payload.attackType,
+                                enabled: message.payload.enabled,
                             });
-                            if (this.system.currentPanelName == '监控') {
-                                this.system.currentList.unshift({
-                                    ip: message.payload.ip,
-                                    connNum: message.payload.connNum,
-                                    abnormalRate: message.payload.abnormalRate,
-                                    attackType: message.payload.attackType,
-                                })
+                            if (this.system.currentPanelName === '监控') {
+                                this.system.currentList = this.menuList[0].connList;
+
+                                this.system.currentPanelName = this.menuList[0].name;
                             }
 
-                        case 'connectionList':
+                            break;
                     }
                 });
             })

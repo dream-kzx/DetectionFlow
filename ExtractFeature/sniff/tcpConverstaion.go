@@ -5,7 +5,7 @@ import (
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"time"
-
+	"log"
 	"github.com/google/gopacket/layers"
 )
 
@@ -15,10 +15,12 @@ type TCPConversation struct {
 	poolChan chan interface{} //用于结束后返回结果到pool
 	timeout  *time.Ticker     //timeout
 	back     bool             //用于在超时之后，是否返回结果
+	PackageNum uint
 }
 
 func (t *TCPConversation) addPacket(tcp *layers.TCP,
 	msg ConnMsg) (*TCPConversation, bool) {
+	t.PackageNum++
 
 	fiveTuple := baseUtil.FiveTuple{
 		SrcIP:        t.SrcIP,
@@ -40,7 +42,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 			} else {
 				t.Land = 0
 			}
-
+			t.LastTime = msg.Last
 			t.updateState(tcp, t.SrcIP)
 			//记录TCP连接的Service
 			t.Service = GetTCPServiceType(fiveTuple)
@@ -51,6 +53,9 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 
 			//创建新的连接，并返回
 			newTCPConversation := NewTCPConversation(fiveTuple, msg.Start, t.poolChan)
+			t.PackageNum++
+
+			newTCPConversation.LastTime = msg.Last
 
 			newTCPConversation.Flag = baseUtil.INIT
 			if msg.srcIP == msg.dstIP {
@@ -111,6 +116,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 
 //提取特征，传入返回结果信道
 func (t *TCPConversation) ExtractBaseFeature() {
+	// log.Println("PacketSum: ",t.PackageNum," (tcpConversation.go 119)")
 	duration := uint(t.LastTime.Sub(t.StartTime))
 
 	tcpFeature := flowFeature.NewTcpBaseFeature(t.FiveTuple, duration, t.FiveTuple.ProtocolType,
@@ -143,9 +149,13 @@ func (t *TCPConversation) updateState(tcp *layers.TCP, srcIP [4]byte) {
 			t.Flag = baseUtil.SH
 		} else if tcp.SYN && tcp.ACK && !from {
 			t.Flag = baseUtil.S1
+		}else if tcp.SYN && tcp.ACK && from{
+			t.Flag = baseUtil.S1
 		}
 	case baseUtil.S1:
 		if tcp.ACK && from {
+			t.Flag = baseUtil.ESTAB
+		}else if tcp.ACK && !from{
 			t.Flag = baseUtil.ESTAB
 		} else if tcp.RST && from {
 			t.Flag = baseUtil.RSTO

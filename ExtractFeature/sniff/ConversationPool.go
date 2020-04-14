@@ -2,6 +2,7 @@ package sniff
 
 import (
 	"FlowDetection/baseUtil"
+	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
@@ -15,16 +16,26 @@ type IPRefragKey struct {
 	SrcIP [4]byte
 }
 
+type ConnMsg struct {
+	srcIP, dstIP [4]byte
+	Start        time.Time
+	Last         time.Time
+	wrong        int
+}
+
 type ConversationPool struct {
 	FragmentList *ip4defrag.IPv4Defragmenter
 	connMsgs     map[IPRefragKey]*ConnMsg
 	TCPList      map[uint64]*TCPConversation
 	UDPList      map[uint64]*UDPConversation
+	ICMPList     map[uint64]*ICMPConversation
 	mapQueue     *KeyQueue
 	resultChan   chan interface{} //接收超时、连接结束的信道，传递的为baseFeature
 	countWindow  *CountWindow
 	timeWindow   *TimeWindow
 	featureChan  chan *flowFeature.FlowFeature //返回特征的信道，传递的信道用来预测流量类型
+
+	blackIndex uint //用于记录黑名单ip的连接数，达到某一数量执行一次checktimeout，防止服务停止
 }
 
 func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
@@ -42,11 +53,30 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 		return
 	}
 
-	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
-	//通过IP数据包中，每个分片的ID是唯一标识的
 	var srcIp, dstIp [4]byte
 	copy(srcIp[:4], ipv4Layer.SrcIP)
 	copy(dstIp[:4], ipv4Layer.DstIP)
+
+	//如果是黑名单的ip，直接跳出
+	if _, ok := BlackList[baseUtil.IpToString(srcIp)];ok{
+		tPool.blackIndex++
+		if tPool.blackIndex>500{
+			tPool.checkTimeout(packet.Metadata().Timestamp)
+			tPool.blackIndex = 0
+		}
+		return
+	}else if _,ok := BlackList[baseUtil.IpToString(dstIp)];ok{
+		tPool.blackIndex++
+		if tPool.blackIndex>500{
+			tPool.checkTimeout(packet.Metadata().Timestamp)
+			tPool.blackIndex = 0
+		}
+		return
+	}
+
+	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
+	//通过IP数据包中，每个分片的ID是唯一标识的
+
 
 	ipRefraKey := IPRefragKey{
 		Id:    ipv4Layer.Id,
@@ -75,7 +105,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 	ipPacket, err := tPool.FragmentList.DefragIPv4WithTimestamp(
 		ipv4Layer, packet.Metadata().Timestamp)
 	if err != nil {
-		log.Println("该包为IP分片！(ConversationPool.go 84)")
+		// log.Println("该包为IP分片！(ConversationPool.go 84)")
 		tPool.checkTimeout(packet.Metadata().Timestamp)
 		return
 	}
@@ -109,7 +139,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 		}
 
 	default:
-		log.Println("未知的包类型 ConversationPool.go")
+		log.Println("未知的包类型 ConversationPool.go ", ipPacket.Protocol)
 	}
 
 	delete(tPool.connMsgs, ipRefraKey)
@@ -119,18 +149,37 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 	connMsg ConnMsg) {
 	mapList := tPool.TCPList
 
-	fiveTuple := baseUtil.FiveTuple{
-		SrcIP:        connMsg.srcIP,
-		DstIP:        connMsg.dstIP,
-		SrcPort:      uint16(tcp.SrcPort),
-		DstPort:      uint16(tcp.DstPort),
-		ProtocolType: layers.IPProtocolTCP,
+	var fiveTuple baseUtil.FiveTuple
+
+	if connMsg.srcIP != config.SERVERIP {
+		fiveTuple = baseUtil.FiveTuple{
+			SrcIP:        connMsg.srcIP,
+			DstIP:        connMsg.dstIP,
+			SrcPort:      uint16(tcp.SrcPort),
+			DstPort:      uint16(tcp.DstPort),
+			ProtocolType: layers.IPProtocolTCP,
+		}
+	} else {
+		fiveTuple = baseUtil.FiveTuple{
+			SrcIP:        connMsg.dstIP,
+			DstIP:        connMsg.srcIP,
+			SrcPort:      uint16(tcp.DstPort),
+			DstPort:      uint16(tcp.SrcPort),
+			ProtocolType: layers.IPProtocolTCP,
+		}
 	}
+
+	if fiveTuple.SrcIP == [...]byte{192, 168, 122, 1} && fiveTuple.DstPort == 22 {
+		return
+	}
+
+	// log.Println(fiveTuple.SrcIP, "    conversationPool.go 167")
 
 	converHash := fiveTuple.FastHash()
 
 	conversation, ok := mapList[converHash]
 	if ok {
+		// log.Println(conversation.Flag,"    conversationPool.go 173")
 		tPool.mapQueue.ResetValue(converHash)
 
 		result, finish := conversation.addPacket(tcp, connMsg)
@@ -191,46 +240,123 @@ func (tPool *ConversationPool) addUDPPacket(udp layers.UDP,
 }
 
 func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
-	icmpConversation := NewICMPConversation()
-	baseFeature := icmpConversation.AddPacket(icmp, msg)
 
-	tPool.resultChan <- baseFeature
+	fiveTuple := baseUtil.FiveTuple{
+		SrcIP:        msg.srcIP,
+		DstIP:        msg.dstIP,
+		SrcPort:      0,
+		DstPort:      0,
+		ProtocolType: layers.IPProtocolICMPv4,
+	}
+
+	converHash := fiveTuple.FastHash()
+
+	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())
+	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I{
+		icmpConversation := NewICMPConversation(tPool.resultChan)
+		_ = icmpConversation.AddPacket(icmp, msg)
+		icmpConversation.ExtractFeature()
+		return
+	}
+
+	conversation, ok := tPool.ICMPList[converHash]
+	if ok{
+		if service == baseUtil.SRV_ECO_I {  //ICMP请求
+			conversation.ExtractFeature()
+
+			newIcmp := NewICMPConversation(tPool.resultChan)
+			newIcmp.AddPacket(icmp,msg)
+			tPool.mapQueue.Push(converHash)
+			tPool.ICMPList[converHash] = newIcmp
+		}else if service == baseUtil.SRV_ECR_I && !conversation.IsSameConversation(msg){//ICMP应答，但不是相同的会话
+			conversation.ExtractFeature()
+			tPool.mapQueue.RemoveValue(converHash)
+			delete(tPool.ICMPList, converHash)
+
+			newIcmp := NewICMPConversation(tPool.resultChan)
+			newIcmp.AddPacket(icmp,msg)
+			newIcmp.ExtractFeature()
+		} else{//ICMP应答，且是相同的会话
+			finish := conversation.AddPacket(icmp,msg)
+			if finish{
+				conversation.ExtractFeature()
+				tPool.mapQueue.RemoveValue(converHash)
+				delete(tPool.ICMPList,converHash)
+			}
+		}
+	}else{
+		newIcmp := NewICMPConversation(tPool.resultChan)
+		if service == baseUtil.SRV_ECO_I{ //ICMP请求
+			newIcmp.AddPacket(icmp,msg)
+			tPool.mapQueue.Push(converHash)
+			tPool.ICMPList[converHash] = newIcmp
+		}else{ //ICMP应答
+			newIcmp.AddPacket(icmp,msg)
+			newIcmp.ExtractFeature()
+		}
+	}
+
 }
 
 func (tPool *ConversationPool) checkTimeout(now time.Time) {
 	mapQueue := tPool.mapQueue
-	
-	for mapQueue.Size > 0 {
-		key := mapQueue.Front()
-		t, ok := tPool.TCPList[key]
-		if ok {
+
+	forList := tPool.mapQueue.List()
+
+	for _, v := range forList {
+		t, ok1 := tPool.TCPList[v]
+		u, ok2 := tPool.UDPList[v]
+		icmp, ok3 := tPool.ICMPList[v]
+		if ok1{
 			interval := now.Sub(t.LastTime)
+			isTimeout := false
 			//如果连接超时，则将记录连接的key从队列中出队，
 			//同时提取特征，并删除TCPList中的这个链接
-			if interval > 2*1000*1000*1000 {
-				tPool.mapQueue.Pop()
+			switch t.Flag {
+			//case baseUtil.S0, baseUtil.ESTAB, baseUtil.SH, baseUtil.S2, baseUtil.S3, baseUtil.S2F, baseUtil.S3F:
+			//case baseUtil.REJ,baseUtil.RSTO,baseUtil.RSTOS0,baseUtil.RSTR:
+			//	is_timedout = (conv->get_last_ts() <= max_tcp_rst);
+			case baseUtil.S0, baseUtil.S1:
+				isTimeout = interval >= baseUtil.TcpSynTimeout
+
+			case baseUtil.ESTAB:
+				isTimeout = interval >= baseUtil.TcpEstabTimeout
+
+			case baseUtil.S2, baseUtil.S3, baseUtil.SH:
+				isTimeout = interval >= baseUtil.TcpFinTimeout
+
+			case baseUtil.S2F, baseUtil.S3F:
+				isTimeout = interval >= baseUtil.TcpLastAckTimeout
+			case baseUtil.OTH:
+				isTimeout = interval >= baseUtil.TcpFinTimeout
+			}
+
+			if isTimeout {
+				tPool.mapQueue.RemoveValue(v)
 				t.ExtractBaseFeature()
-				delete(tPool.TCPList, key)
-			} else {
-				return
+				delete(tPool.TCPList, v)
 			}
-		} else {
-			//如果不是TCP连接列表中的连接，则在UDP连接列表中进行查询
-			u, ok := tPool.UDPList[key]
-			if ok {
-				interval := now.Sub(u.LastTime)
-				if interval > 2*1000*1000*1000 {
-					mapQueue.Pop()
-					u.ExtractBaseFeature()
-					delete(tPool.UDPList, key)
-				} else {
-					return
-				}
-			} else {
-				log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
+		}else if ok2{
+			interval := now.Sub(u.LastTime)
+
+			if interval >= baseUtil.UdpTimeout {
+				mapQueue.RemoveValue(v)
+				u.ExtractBaseFeature()
+				delete(tPool.UDPList, v)
 			}
+		}else if ok3{
+			interval := now.Sub(icmp.LastTime)
+			if interval >= baseUtil.IcmpTimeout{
+				mapQueue.RemoveValue(v)
+				icmp.ExtractFeature()
+				delete(tPool.ICMPList, v)
+			}
+		}else{
+			mapQueue.RemoveValue(v)
+			log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
 		}
 	}
+
 }
 
 func (tPool *ConversationPool) checkResultChan() {
@@ -261,6 +387,7 @@ func NewConversationPool(featureChan chan *flowFeature.FlowFeature) *Conversatio
 		connMsgs:     make(map[IPRefragKey]*ConnMsg),
 		TCPList:      make(map[uint64]*TCPConversation),
 		UDPList:      make(map[uint64]*UDPConversation),
+		ICMPList:     make(map[uint64]*ICMPConversation),
 		mapQueue:     NewKeyQueue(),
 		resultChan:   make(chan interface{}, 4),
 		countWindow:  NewCountWindow(),

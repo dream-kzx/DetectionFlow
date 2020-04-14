@@ -35,7 +35,7 @@ func (p *PredictFlow) Predict(feature *flowFeature.FlowFeature) uint32 {
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("predict:%d", label.Label)
+	// log.Printf("predict:%d", label.Label)
 	return label.Label
 }
 

@@ -4,7 +4,7 @@ type Parameters struct {
 	data map[string]interface{}
 }
 
-func New() *Parameters {
+func NewParameters() *Parameters {
 	p := new(Parameters)
 	return p
 }

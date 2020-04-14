@@ -19,7 +19,9 @@ func NewKeyQueue() *KeyQueue {
 }
 
 func (q KeyQueue) List() []uint64 {
-	return q.list
+	tmp := make([]uint64,len(q.list))
+	copy(tmp,q.list)
+	return tmp
 }
 
 func (q *KeyQueue) Front() uint64 {
