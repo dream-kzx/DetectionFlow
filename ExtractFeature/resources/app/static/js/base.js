@@ -127,7 +127,6 @@ Server.prototype.sendMessage = function (name, payload, callback) {
         },
         created() {
             document.addEventListener('astilectron-ready', () => {
-
                 //listen the message from backend
                 astilectron.onMessage((message) => {
                     // console.log("receive message: ", message.name, message);

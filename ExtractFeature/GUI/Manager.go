@@ -73,6 +73,7 @@ func (manager *Manager) AddFlow(flow *FlowResult) {
 					}
 					BlackToSnifferChan <- operateSniffer
 				}
+				host.Enabled = true
 				manager.BlackList[key]=struct{}{}
 			}
 		}

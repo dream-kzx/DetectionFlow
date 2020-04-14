@@ -29,9 +29,9 @@ var (
 	queryNetworkCard bool //查询网卡信息
 	device       *string //网卡名称
 	pcapFileName *string //pacp文件名
-	GUIStart     *bool   //使用GUI
-	AutoFilter   *bool   //自动过滤
-	WriteFile    *bool   //写pacp，feature文件
+	GUIStart     bool   //使用GUI
+	AutoFilter   bool   //自动过滤
+	WriteFile    bool   //写pacp，feature文件
 
 	wf baseUtil.MyWriteFile
 )
@@ -43,9 +43,9 @@ func parseParameters() {
 	device = flag.String("device", "", "要嗅探的网卡名称")
 	pcapFileName = flag.String("pcapFileName", "", "要解析的文件路径名称")
 
-	flag.BoolVar(AutoFilter,"auto",true,"是否在异常连接数达到阈值时，自动加IP假如黑名单")
-	flag.BoolVar(GUIStart,"gui",false,"是否启动GUI界面")
-	flag.BoolVar(WriteFile,"wf",false,"是否允许保存pcap，feature文件")
+	flag.BoolVar(&AutoFilter,"auto",true,"是否在异常连接数达到阈值时，自动加IP假如黑名单")
+	flag.BoolVar(&GUIStart,"gui",false,"是否启动GUI界面")
+	flag.BoolVar(&WriteFile,"wf",false,"是否允许保存pcap，feature文件")
 
 
 	flag.Parse()
@@ -67,6 +67,7 @@ func main() {
 
 	if queryNetworkCard {
 		PrintNetworkCard()
+		return
 	}
 
 	//黑名单到sniffer捕获ip的操作信道
@@ -76,12 +77,12 @@ func main() {
 	featureToPredictChan := make(chan *flowFeature.FlowFeature, 5)
 
 	manager = GUI.NewManager()
-	handler = GUI.NewHandler(manager, BlackToSnifferChan, AutoFilter)
+	handler = GUI.NewHandler(manager, BlackToSnifferChan, &AutoFilter)
 
 	//启动预测模块
 	go PredictFLowInFeature(featureToPredictChan)
 
-	if *GUIStart {
+	if GUIStart {
 		resultToGUIChan = make(chan *GUI.FlowResult, 10)
 		go snifferAndExtract(featureToPredictChan)
 
@@ -166,7 +167,7 @@ func snifferAndExtract(featureChan chan *flowFeature.FlowFeature) {
 
 	fmt.Println("开始监听：")
 
-	sniffer.StartSniffer(BlackToSnifferChan, WriteFile)
+	sniffer.StartSniffer(BlackToSnifferChan, &WriteFile)
 }
 
 func PrintNetworkCard(){
@@ -180,7 +181,7 @@ func PrintNetworkCard(){
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 
 	//写feature.csv文件
-	if *WriteFile {
+	if WriteFile {
 		wf = baseUtil.MyWriteFile{}
 		wf.OpenFile("feature.csv")
 	}
@@ -195,7 +196,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			//grpc调用机器学习算法，预测流量类型
 			label := predictFlow.Predict(feature)
 
-			if *WriteFile {
+			if WriteFile {
 				data := feature.FeatureToString()
 				data += attackList[label] + ","
 				data += baseUtil.IpToString(feature.SrcIP) + ","
@@ -219,7 +220,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 			flowResult.SrcPort = strconv.Itoa(int(feature.SrcPort))
 			flowResult.AttackType = attackList[label]
 
-			if *GUIStart {
+			if GUIStart {
 				resultToGUIChan <- flowResult
 			} else {
 				manager.AddFlow(flowResult)
