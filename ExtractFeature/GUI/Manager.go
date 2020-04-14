@@ -57,12 +57,12 @@ func (manager *Manager) AddFlow(flow *FlowResult) {
 		host.add(flow)
 
 		abnormalNum := host.GetAbnormalNum()
-		log.Println(abnormalNum)
+		// log.Println(abnormalNum)
 		if abnormalNum >1000 && *AutoFilter{
 
 			_, ok := manager.BlackList[key]
 			if !ok {
-				log.Println("》》》》》》》》》》》》》》》》》》》》》》》》》》》》》》加入黑名单")
+				// log.Println("》》》》》》》》》》》》》》》》》》》》》》》》》》》》》》加入黑名单")
 				err:=addFireWall(key)
 				if err!=nil{
 					log.Println(err)

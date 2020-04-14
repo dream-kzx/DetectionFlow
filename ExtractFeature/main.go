@@ -212,7 +212,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 
 			log.Println(feature.SrcPort, "   ", feature.SrcIP)
 			log.Println(feature.DstPort, "   ", feature.DstIP)
-			log.Println(feature.FeatureToString())
+			// log.Println(feature.FeatureToString())
 
 			//
 			flowResult := new(GUI.FlowResult)

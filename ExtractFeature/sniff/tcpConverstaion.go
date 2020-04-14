@@ -116,7 +116,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 
 //提取特征，传入返回结果信道
 func (t *TCPConversation) ExtractBaseFeature() {
-	log.Println("PacketSum: ",t.PackageNum," (tcpConversation.go 119)")
+	// log.Println("PacketSum: ",t.PackageNum," (tcpConversation.go 119)")
 	duration := uint(t.LastTime.Sub(t.StartTime))
 
 	tcpFeature := flowFeature.NewTcpBaseFeature(t.FiveTuple, duration, t.FiveTuple.ProtocolType,

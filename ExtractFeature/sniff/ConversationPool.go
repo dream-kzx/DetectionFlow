@@ -105,7 +105,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 	ipPacket, err := tPool.FragmentList.DefragIPv4WithTimestamp(
 		ipv4Layer, packet.Metadata().Timestamp)
 	if err != nil {
-		log.Println("该包为IP分片！(ConversationPool.go 84)")
+		// log.Println("该包为IP分片！(ConversationPool.go 84)")
 		tPool.checkTimeout(packet.Metadata().Timestamp)
 		return
 	}
@@ -173,13 +173,13 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 		return
 	}
 
-	log.Println(fiveTuple.SrcIP, "    conversationPool.go 167")
+	// log.Println(fiveTuple.SrcIP, "    conversationPool.go 167")
 
 	converHash := fiveTuple.FastHash()
 
 	conversation, ok := mapList[converHash]
 	if ok {
-		log.Println(conversation.Flag,"    conversationPool.go 173")
+		// log.Println(conversation.Flag,"    conversationPool.go 173")
 		tPool.mapQueue.ResetValue(converHash)
 
 		result, finish := conversation.addPacket(tcp, connMsg)
