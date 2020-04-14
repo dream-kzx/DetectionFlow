@@ -16,6 +16,13 @@ type IPRefragKey struct {
 	SrcIP [4]byte
 }
 
+type ConnMsg struct {
+	srcIP, dstIP [4]byte
+	Start        time.Time
+	Last         time.Time
+	wrong        int
+}
+
 type ConversationPool struct {
 	FragmentList *ip4defrag.IPv4Defragmenter
 	connMsgs     map[IPRefragKey]*ConnMsg

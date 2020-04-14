@@ -22,35 +22,46 @@ const (
 )
 
 var (
-	device             string
 	BlackToSnifferChan chan *GUI.OperateSniffer
 	resultToGUIChan    chan *GUI.FlowResult
 	logOut             *log.Logger
 
-	GUIStart   *bool //使用GUI
-	AutoFilter *bool //自动过滤
-	WriteFile  *bool //写pacp，feature文件
+	device       *string //网卡名称
+	pcapFileName *string //pacp文件名
+	GUIStart     *bool   //使用GUI
+	AutoFilter   *bool   //自动过滤
+	WriteFile    *bool   //写pacp，feature文件
 
 	wf baseUtil.MyWriteFile
 )
 
-func init() {
 
-	osStr := runtime.GOOS
-	if osStr == "linux" || osStr == "unix" {
-		device = "ens33"
-	} else if osStr == "windows" {
-		device = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
-	}
-
-	//黑名单到sniffer捕获ip的操作信道
-	BlackToSnifferChan = make(chan *GUI.OperateSniffer)
-}
-
-func main() {
+func parseParameters() {
+	device = flag.String("device", "", "要嗅探的网卡名称")
+	pcapFileName = flag.String("pcapFileName", "", "要解析的文件路径名称")
 	AutoFilter = flag.Bool("autoFilter", true, "是否在异常连接数达到阈值时，自动加IP假如黑名单")
 	GUIStart = flag.Bool("guiStart", false, "是否启动GUI界面")
 	WriteFile = flag.Bool("writeFile", false, "是否允许保存pcap，feature文件")
+
+	flag.Parse()
+
+	if *device == "" && *pcapFileName == ""{
+		osStr := runtime.GOOS
+		if osStr == "linux" || osStr == "unix" {
+			*device = "ens33"
+		} else if osStr == "windows" {
+			*device = "\\Device\\NPF_{2CCCFA0A-FEE2-4688-BC5A-43A805A8DC67}"
+		}
+	}
+
+}
+
+func main() {
+	//解析命令行参数
+	parseParameters()
+
+	//黑名单到sniffer捕获ip的操作信道
+	BlackToSnifferChan = make(chan *GUI.OperateSniffer)
 
 	//特征结构-->预测的chan
 	featureToPredictChan := make(chan *flowFeature.FlowFeature, 5)
@@ -131,10 +142,18 @@ func snifferAndExtract(featureChan chan *flowFeature.FlowFeature) {
 		log.Fatal(err)
 	}
 
-	err = sniffer.SetSnifferInterface(device, promiscuous)
-	if err != nil {
-		log.Fatal(err)
+	if *device != "" {
+		err = sniffer.SetSnifferSource(*device, 1, promiscuous)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}else if *pcapFileName !=""{
+		err = sniffer.SetSnifferSource(*pcapFileName, 0, promiscuous)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+
 
 	fmt.Println("开始监听：")
 
@@ -193,5 +212,3 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 
 	}
 }
-
-
