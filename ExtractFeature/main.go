@@ -26,6 +26,7 @@ var (
 	resultToGUIChan    chan *GUI.FlowResult
 	logOut             *log.Logger
 
+	queryNetworkCard bool //查询网卡信息
 	device       *string //网卡名称
 	pcapFileName *string //pacp文件名
 	GUIStart     *bool   //使用GUI
@@ -37,11 +38,15 @@ var (
 
 
 func parseParameters() {
+	flag.BoolVar(&queryNetworkCard,"i",false,"查询本机网卡的信息")
+
 	device = flag.String("device", "", "要嗅探的网卡名称")
 	pcapFileName = flag.String("pcapFileName", "", "要解析的文件路径名称")
-	AutoFilter = flag.Bool("autoFilter", true, "是否在异常连接数达到阈值时，自动加IP假如黑名单")
-	GUIStart = flag.Bool("guiStart", false, "是否启动GUI界面")
-	WriteFile = flag.Bool("writeFile", false, "是否允许保存pcap，feature文件")
+
+	flag.BoolVar(AutoFilter,"auto",true,"是否在异常连接数达到阈值时，自动加IP假如黑名单")
+	flag.BoolVar(GUIStart,"gui",false,"是否启动GUI界面")
+	flag.BoolVar(WriteFile,"wf",false,"是否允许保存pcap，feature文件")
+
 
 	flag.Parse()
 
@@ -59,6 +64,10 @@ func parseParameters() {
 func main() {
 	//解析命令行参数
 	parseParameters()
+
+	if queryNetworkCard {
+		PrintNetworkCard()
+	}
 
 	//黑名单到sniffer捕获ip的操作信道
 	BlackToSnifferChan = make(chan *GUI.OperateSniffer)
@@ -158,6 +167,14 @@ func snifferAndExtract(featureChan chan *flowFeature.FlowFeature) {
 	fmt.Println("开始监听：")
 
 	sniffer.StartSniffer(BlackToSnifferChan, WriteFile)
+}
+
+func PrintNetworkCard(){
+	sniffer, err := sniff.NewSniffer(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	sniffer.PrintDevices()
 }
 
 func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
