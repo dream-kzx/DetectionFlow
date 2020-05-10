@@ -129,7 +129,7 @@ class Flag():
 
 class Protocol():
     Type = {
-        "icmp": 1,
-        "tcp": 6,
-        "udp": 17
+        "icmp": 0,
+        "tcp": 1,
+        "udp": 2
     }
