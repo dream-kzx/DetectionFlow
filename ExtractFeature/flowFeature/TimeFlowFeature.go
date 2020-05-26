@@ -19,11 +19,11 @@ func (t TimeFlowFeature) FeatureToString() string {
 	// data += strconv.Itoa(int(t.Count)) + ","
 	// data += strconv.Itoa(int(t.SrvCount)) + ","
 	// data += strconv.FormatFloat(float64(t.SErrorRate), 'f', 6, 64) + ","
-	// data += strconv.FormatFloat(float64(t.SrvSErrorRate), 'f', 6, 64) + ","
+	data += strconv.FormatFloat(float64(t.SrvSErrorRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(t.RErrorRate), 'f', 6, 64) + ","
-	// data += strconv.FormatFloat(float64(t.SrvRErrorRate), 'f', 6, 64) + ","
+	data += strconv.FormatFloat(float64(t.SrvRErrorRate), 'f', 6, 64) + ","
 	data += strconv.FormatFloat(float64(t.SameSrvRate), 'f', 6, 64) + ","
-	// data += strconv.FormatFloat(float64(t.DiffSrvRate), 'f', 6, 64) + ","
+	data += strconv.FormatFloat(float64(t.DiffSrvRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(t.SrvDiffHostRate), 'f', 6, 64) + ","
 	return data
 }

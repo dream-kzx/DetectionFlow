@@ -1,6 +1,6 @@
 # coding=utf-8
 import numpy as np
-
+from GenerateModel import type as AttackType
 
 class FlowFeature:
     def __init__(self, request):
@@ -59,7 +59,10 @@ class FlowFeature:
         #          self.dstHostSameSrvRate, self.dstHostDiffSrvRate, self.dstHostSameSrcPortRate,
         #          self.dstHostSrvDiffHostRate, self.dstHostSErrorRate, self.dstHostSrvSErrorRate, self.dstHostRErrorRate,
         #          self.dstHostSrvRErrorRate]]
-        array = [[self.protocolType, self.service, self.flag, self.srcBytes,
-                  self.sameSrvRate, self.dstHostSrvCount, self.dstHostSameSrvRate,
-                  self.dstHostDiffSrvRate, self.dstHostSrvSErrorRate]]
+        #array = [[self.protocolType, self.service, self.flag, self.srcBytes,
+        #          self.sameSrvRate, self.dstHostSrvCount, self.dstHostSameSrvRate,
+        #          self.dstHostDiffSrvRate, self.dstHostSrvSErrorRate]]
+        array = [[self.duration, self.protocolType, self.service, AttackType.Flag.Type[self.flag], self.srcBytes,self.dstBytes,
+                    self.srvSErrorRate,self.srvRErrorRate, self.sameSrvRate, self.diffSrvRate,
+                    self.dstHostSameSrvRate, self.dstHostDiffSrvRate, self.dstHostSrvSErrorRate,self.dstHostSrvRErrorRate]]
         return np.array(array)

@@ -5,7 +5,6 @@ import (
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
 	"time"
-	"log"
 	"github.com/google/gopacket/layers"
 )
 
@@ -117,7 +116,7 @@ func (t *TCPConversation) addPacket(tcp *layers.TCP,
 //提取特征，传入返回结果信道
 func (t *TCPConversation) ExtractBaseFeature() {
 	// log.Println("PacketSum: ",t.PackageNum," (tcpConversation.go 119)")
-	duration := uint(t.LastTime.Sub(t.StartTime))
+	duration := uint(t.LastTime.Sub(t.StartTime)/1000000000)
 
 	tcpFeature := flowFeature.NewTcpBaseFeature(t.FiveTuple, duration, t.FiveTuple.ProtocolType,
 		t.Service, t.Flag, t.SrcBytes, t.DstBytes, t.Land, t.WrongFragment, t.Urgent)

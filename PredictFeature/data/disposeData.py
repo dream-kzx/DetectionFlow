@@ -1,4 +1,9 @@
 # coding=utf-8
+import sys
+import os
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 import csv
 from GenerateModel import type
@@ -49,7 +54,12 @@ def disposeKDDData(readName, writerName):
             else:
                 line = []
                 line.extend(row[0:9])
-                line.extend(row[22:42])
+                line.extend(row[22:41])
+                if row[41]=="normal":
+                    line.append("normal")
+                else:
+                    line.append("attack")
+
                 writerCSV.writerow(line)
 
             i += 1
@@ -155,10 +165,9 @@ def disposeNormalize(readName, wirteName):
 
 
 if __name__ == "__main__":
-    pass
-    # disposeData("KDDTest+.csv", "FlowTest.csv")
-    # disposeData("KDDTrain+.csv", "FlowTrain.csv")
+    disposeKDDData("KDDTest+.csv", "FlowTest.csv")
+    disposeKDDData("KDDTrain+.csv", "FlowTrain.csv")
     disposeData("FlowTest.csv", "RightTest.csv")
     disposeData("FlowTrain.csv", "RightTrain.csv")
-    disposeNormalize("RightTest.csv", "normalizeTest.csv")
-    disposeNormalize("RightTrain.csv", "normalizeTrain.csv")
+    #disposeNormalize("RightTest.csv", "normalizeTest.csv")
+    #disposeNormalize("RightTrain.csv", "normalizeTrain.csv")

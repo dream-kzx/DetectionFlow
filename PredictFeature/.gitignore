@@ -3,3 +3,8 @@
 
 /GenerateModel/__pycache__
 /CallPredict/__pycache__
+/GenerateModel/tree.dot
+/data/FlowTest.csv
+/data/FlowTrain.csv
+/data/RightTest.csv
+/data/RightTrain.csv

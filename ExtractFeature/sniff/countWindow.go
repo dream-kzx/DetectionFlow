@@ -1,6 +1,8 @@
 package sniff
 
-import "FlowDetection/flowFeature"
+import (
+	"FlowDetection/flowFeature"
+)
 
 const WindowSize = 256
 
@@ -43,7 +45,7 @@ func (c *CountWindow) AddConversation(tcpBaseFeature *flowFeature.TCPBaseFeature
 	feature *flowFeature.FlowFeature) {
 
 	c.calculateFeature(tcpBaseFeature, feature)
-	if c.conversationQueue.Size > WindowSize {
+	if c.conversationQueue.Size >= WindowSize {
 		c.removeInMap()
 	}
 	c.addInMap(tcpBaseFeature)
@@ -128,11 +130,18 @@ func (c *CountWindow) calculateFeature(tcpBaseFeature *flowFeature.TCPBaseFeatur
 	dstHostServiceList := c.sameHostServiceMap[serviceHost]
 	dstHostSrvCount := len(dstHostServiceList) //33 P(AB)
 
-	dstHostSameSrvRate := float64(dstHostSrvCount) / WindowSize              //34 P(AB)/256
-	dstHostDiffSrvRate := float64(dstHostCount-dstHostSrvCount) / WindowSize //35 (P(A)-P(AB))/256
+	dstHostSameSrvRate := 0.0
+	dstHostDiffSrvRate := 0.0
+	dstHostSameSrcPortRate := 0.0
 
 	dstHostSameSrcPortCount := c.sameHostSrcPortMap[hostSrcPort]
-	dstHostSameSrcPortRate := float64(dstHostSameSrcPortCount) / WindowSize //36 P(AC)/256
+
+	if c.conversationQueue.Size > 0 {
+		dstHostSameSrvRate = float64(dstHostSrvCount) / float64(c.conversationQueue.Size)              //34 P(AB)/256
+		dstHostDiffSrvRate = float64(dstHostCount-dstHostSrvCount) / float64(c.conversationQueue.Size) //35 (P(A)-P(AB))/256
+
+		dstHostSameSrcPortRate = float64(dstHostSameSrcPortCount) / float64(c.conversationQueue.Size) //36 P(AC)/256
+	}
 
 	diffSrcHostCount := 0
 	hostSrvSErrorCount := 0

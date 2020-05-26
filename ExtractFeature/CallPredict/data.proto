@@ -11,7 +11,7 @@ message Request {
     uint32 duration = 1;
     string protocolType = 2;
     uint32 service = 3;
-    uint32 flag = 4;
+    string flag = 4;
     uint32 srcBytes = 5;
     uint32 dstBytes = 6;
     uint32 land = 7;

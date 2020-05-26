@@ -46,7 +46,7 @@ func (u *UDPConversation) AddPacket(udp layers.UDP, connMsg ConnMsg) {
 
 func (u *UDPConversation) ExtractBaseFeature() {
 
-	duration := uint(u.LastTime.Sub(u.StartTime))
+	duration := uint(u.LastTime.Sub(u.StartTime)/1000000000)
 
 	tcpFeature := flowFeature.NewTcpBaseFeature(u.FiveTuple, duration, u.FiveTuple.ProtocolType,
 		u.Service, u.Flag, u.SrcBytes, u.DstBytes, u.Land, u.WrongFragment, u.Urgent)

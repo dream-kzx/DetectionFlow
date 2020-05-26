@@ -18,6 +18,7 @@ class PredictFlow():
     def predict(self, request, context):
         feature = flowFeature.FlowFeature(request)
         data = feature.toNpArray()
+        print(data)
         predictModel = PredictModel()
         predictModel.loadModel("../model/train_model.pkl")
         label = predictModel.predict(data)

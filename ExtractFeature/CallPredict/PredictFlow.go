@@ -48,7 +48,7 @@ func flowFeatureToRequest(feature *flowFeature.FlowFeature) *Request {
 		Duration:               uint32(feature.Duration),
 		ProtocolType:           feature.ProtocolType,
 		Service:                uint32(feature.Service),
-		Flag:                   uint32(feature.Flag),
+		Flag:                   feature.Flag,
 		SrcBytes:               uint32(feature.SrcBytes),
 		DstBytes:               uint32(feature.DstBytes),
 		Land:                   uint32(feature.Land),

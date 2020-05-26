@@ -106,7 +106,7 @@ func (i *ICMPConversation) IsSameConversation(msg ConnMsg) bool {
 }
 
 func (i *ICMPConversation) ExtractFeature(){
-	duration := i.LastTime.Sub(i.StartTime)
+	duration := i.LastTime.Sub(i.StartTime)/1000000000
 
 	tcpBaseFeature := flowFeature.NewTcpBaseFeature(i.FiveTuple, uint(duration), i.FiveTuple.ProtocolType,
 		i.Service, i.Flag, i.SrcBytes, i.DstBytes, i.Land, i.WrongFragment, i.Urgent)

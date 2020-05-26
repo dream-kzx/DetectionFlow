@@ -7,3 +7,4 @@ feature.csv
 bind_windows_amd64.go
 windows.syso
 bind_linux_amd64.go
+DetectionFlow

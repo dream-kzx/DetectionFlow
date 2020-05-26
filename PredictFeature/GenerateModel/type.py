@@ -114,17 +114,17 @@ class Service():
 
 class Flag():
     Type = {
-        "SF": 1,
-        "S0": 2,
-        "S1": 3,
-        "S2": 4,
-        "S3": 5,
-        "REJ": 6,
-        "RSTOS0": 7,
-        "RSTO": 8,
-        "RSTR": 9,
-        "SH": 10,
-        "OTH": 13}
+        "SF": 0,
+        "S0": 1,
+        "S1": 2,
+        "S2": 3,
+        "S3": 4,
+        "REJ": 5,
+        "RSTOS0": 6,
+        "RSTO": 7,
+        "RSTR": 8,
+        "SH": 9,
+        "OTH": 10}
 
 
 class Protocol():

@@ -57,6 +57,7 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 	copy(srcIp[:4], ipv4Layer.SrcIP)
 	copy(dstIp[:4], ipv4Layer.DstIP)
 
+	// log.Println(BlackList)
 	//如果是黑名单的ip，直接跳出
 	if _, ok := BlackList[baseUtil.IpToString(srcIp)];ok{
 		tPool.blackIndex++

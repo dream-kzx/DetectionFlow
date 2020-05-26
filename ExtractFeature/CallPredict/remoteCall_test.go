@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-////protoc --go_out=plugins=grpc:. service.proto 11111111111111
+////protoc --go_out=plugins=grpc:. service.proto
 
 
 func TestCallPredict(t *testing.T){

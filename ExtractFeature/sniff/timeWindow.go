@@ -137,13 +137,15 @@ func (t *TimeWindow) calculateFeature(tcpBaseFeature *flowFeature.TCPBaseFeature
 	serrorRate := 0.0
 	rerrorRate := 0.0
 	sameSrvRate := 0.0
+	diffSrvRate :=0.0
 	if count != 0 {
 		serrorRate = float64(hostSErrorCount) / float64(count)
 		rerrorRate = float64(hostRErrorCount) / float64(count)
 		sameSrvRate = float64(sameHostService) / float64(count)
+		diffSrvRate = 1 - sameSrvRate
+
 	}
 
-	diffSrvRate := 1 - sameSrvRate
 	srvSErrorRate := 0.0
 	srvRErrorRate := 0.0
 	srvDiffHostRate := 0.0

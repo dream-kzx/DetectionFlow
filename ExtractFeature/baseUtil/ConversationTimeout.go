@@ -3,13 +3,13 @@ package baseUtil
 import "time"
 
 const (
-	TcpSynTimeout     = 120 * time.Second
-	TcpEstabTimeout   = 120 * time.Second
-	TcpRstTimeout     = 10 * time.Second
-	TcpFinTimeout     = 120 * time.Second
-	TcpLastAckTimeout = 30 * time.Second
-	UdpTimeout        = 180 * time.Second
-	IcmpTimeout       = 30 * time.Second
+	TcpSynTimeout     = 5 * time.Second
+	TcpEstabTimeout   = 60 * time.Second
+	TcpRstTimeout     = 5 * time.Second
+	TcpFinTimeout     = 5 * time.Second
+	TcpLastAckTimeout = 5 * time.Second
+	UdpTimeout        = 10 * time.Second
+	IcmpTimeout       = 10 * time.Second
 )
 
 

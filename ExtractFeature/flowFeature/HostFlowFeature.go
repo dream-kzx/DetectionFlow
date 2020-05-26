@@ -18,7 +18,7 @@ type HostFlowFeature struct {
 func (h HostFlowFeature) FeatureToString() string {
 	data := ""
 	// data += strconv.Itoa(int(h.DstHostCount)) + ","
-	data += strconv.Itoa(int(h.DstHostSrvCount)) + ","
+	//data += strconv.Itoa(int(h.DstHostSrvCount)) + ","
 	data += strconv.FormatFloat(float64(h.DstHostSameSrvRate), 'f', 6, 64) + ","
 	data += strconv.FormatFloat(float64(h.DstHostDiffSrvRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostSameSrcPortRate), 'f', 6, 64) + ","
@@ -26,7 +26,7 @@ func (h HostFlowFeature) FeatureToString() string {
 	// data += strconv.FormatFloat(float64(h.DstHostSErrorRate), 'f', 6, 64) + ","
 	data += strconv.FormatFloat(float64(h.DstHostSrvSErrorRate), 'f', 6, 64) + ","
 	// data += strconv.FormatFloat(float64(h.DstHostRErrorRate), 'f', 6, 64) + ","
-	// data += strconv.FormatFloat(float64(h.DstHostSrvRErrorRate), 'f', 6, 64) + "\n"
+	data += strconv.FormatFloat(float64(h.DstHostSrvRErrorRate), 'f', 6, 64) + ","
 	return data
 }
 

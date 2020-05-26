@@ -22,7 +22,7 @@ type TCPBaseFeature struct {
 	Duration      uint   //1/41
 	ProtocolType  string //2/41 Probe
 	Service       uint8  //3/41 Dos
-	Flag          uint8  //4/41 Dos
+	Flag          string //4/41 Dos
 	SrcBytes      uint   //5/41 Dos Probe
 	DstBytes      uint   //6/41
 	Land          uint8  //7/41
@@ -39,7 +39,8 @@ func (t TCPBaseFeature) Print() {
 
 func (t TCPBaseFeature) IsSerror() bool {
 	switch t.Flag {
-	case baseUtil.S0, baseUtil.S1, baseUtil.S2, baseUtil.S3:
+	//case "S0", "S1", "S2", "S3":
+	case "S0", "S1":
 		return true
 	default:
 		return false
@@ -47,7 +48,7 @@ func (t TCPBaseFeature) IsSerror() bool {
 }
 
 func (t TCPBaseFeature) IsRerror() bool {
-	if t.Flag == baseUtil.REJ {
+	if t.Flag == "REJ" || t.Flag == "RSTO" || t.Flag == "RSTOS0" || t.Flag == "RSTR" {
 		return true
 	} else {
 		return false
@@ -56,12 +57,12 @@ func (t TCPBaseFeature) IsRerror() bool {
 
 func (t TCPBaseFeature) FeatureToString() string {
 	data := ""
-	// data += strconv.Itoa(int(t.Duration)) + ","
+	data += strconv.Itoa(int(t.Duration)) + ","
 	data += t.ProtocolType + ","
 	data += ServiceToString(t.Service) + ","
-	data += FlagToString(t.Flag) + ","
+	data += t.Flag + ","
 	data += strconv.Itoa(int(t.SrcBytes)) + ","
-	// data += strconv.Itoa(int(t.DstBytes)) + ","
+	data += strconv.Itoa(int(t.DstBytes)) + ","
 	// data += strconv.Itoa(int(t.Land)) + ","
 	// data += strconv.Itoa(int(t.WrongFragment)) + ","
 	// data += strconv.Itoa(int(t.Urgent)) + ","
@@ -245,6 +246,8 @@ func FlagToString(flag uint8) string {
 		return "SH"
 	case baseUtil.OTH:
 		return "OTH"
+	case baseUtil.ESTAB:
+		return "S1"
 	default:
 		return strconv.Itoa(int(flag))
 	}
@@ -271,7 +274,7 @@ func NewTcpBaseFeature(fiveTuple baseUtil.FiveTuple, duration uint, protocolType
 		Duration:      duration,
 		ProtocolType:  proType,
 		Service:       uint8(service),
-		Flag:          uint8(flag),
+		Flag:          FlagToString(uint8(flag)),
 		SrcBytes:      uint(srcBytes),
 		DstBytes:      uint(dstBytes),
 		Land:          uint8(land),

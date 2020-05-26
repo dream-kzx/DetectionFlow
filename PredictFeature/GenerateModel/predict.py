@@ -1,7 +1,11 @@
 # coding=utf-8
+import sys
+import os
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 import csv
-
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -126,7 +130,7 @@ class PredictModel:
         self.tree = joblib.load(modelFileName)
 
     def predict(self, feature):
-        feature[0][0] = type.Protocol.Type[feature[0][0]]
+        feature[0][1] = type.Protocol.Type[feature[0][1]]
         label = self.tree.predict(feature)
         return label[0]
 
@@ -192,6 +196,6 @@ if __name__ == "__main__":
 
     trainModel.loadTrainAndTestFile("../data/RightTrain.csv",
                                     "../data/RightTest.csv")
-    # trainModel.selectDepth(11)
+    trainModel.selectDepth(11)
 
-    trainModel.train(6, "../model/train_model.pkl")
+    trainModel.train(5, "../model/train_model.pkl")

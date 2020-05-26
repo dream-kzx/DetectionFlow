@@ -2,16 +2,13 @@ package sniff
 
 import (
 	"FlowDetection/GUI"
-	"FlowDetection/baseUtil"
 	"FlowDetection/flowFeature"
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/google/gopacket/pcapgo"
 )
@@ -145,33 +142,36 @@ func (sniffer *Sniffer) StartSniffer(blackToSnifferChan chan *GUI.OperateSniffer
 
 	//写PCAP文件
 	if *WriteFile {
-		if baseUtil.CheckFileIsExist("test.pcap") {
-			_ = os.Remove("test.pcap")
-		}
-		f, _ := os.Create("test.pcap")
-		wPcap = pcapgo.NewWriter(f)
-		_ = wPcap.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
-		defer f.Close()
+		//if baseUtil.CheckFileIsExist("test.pcap") {
+		//	_ = os.Remove("test.pcap")
+		//}
+		//f, _ := os.Create("test.pcap")
+		//wPcap = pcapgo.NewWriter(f)
+		//_ = wPcap.WriteFileHeader(snapshotLen, layers.LinkTypeEthernet)
+		//defer f.Close()
 	}
 
+Loop:
 	for {
 		select {
 		case packet := <-sniffer.packets:
 			//写PCAP文件
 			if *WriteFile {
-				err := wPcap.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
-				if err != nil {
-					log.Println(err)
-				}
+				//err := wPcap.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
+				//if err != nil {
+				//	log.Println(err)
+				//}
 			}
-
+			if packet == nil{
+				break Loop
+			}
 			sniffer.conversationPool.DisposePacket(packet)
 		case <-time.After(2 * time.Second):
 			log.Println("2秒内没有连接到达...(sniffer.go 112)")
 			sniffer.conversationPool.checkTimeout(time.Now())
 
 		}
-
 	}
+	time.Sleep(20*time.Second)
 
 }
