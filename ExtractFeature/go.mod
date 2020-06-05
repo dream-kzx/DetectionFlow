@@ -15,4 +15,5 @@ require (
 	github.com/pkg/errors v0.9.1
 	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa // indirect
 	google.golang.org/grpc v1.28.0
+	github.com/aWildProgrammer/fconf v0.0.0-20180508142436-83e728b760bc
 )

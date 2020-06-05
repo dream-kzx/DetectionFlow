@@ -4,11 +4,12 @@ import (
 	"FlowDetection/baseUtil"
 	"FlowDetection/config"
 	"FlowDetection/flowFeature"
+	"log"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/ip4defrag"
 	"github.com/google/gopacket/layers"
-	"log"
-	"time"
 )
 
 type IPRefragKey struct {
@@ -57,22 +58,22 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 	copy(srcIp[:4], ipv4Layer.SrcIP)
 	copy(dstIp[:4], ipv4Layer.DstIP)
 
-	if srcIp != [4]byte{192,168,122,128} && dstIp != [4]byte{192,168,122,128}{
+	if srcIp != config.SERVERIP && dstIp != config.SERVERIP {
 		return
 	}
 
 	// log.Println(BlackList)
 	//如果是黑名单的ip，直接跳出
-	if _, ok := BlackList[baseUtil.IpToString(srcIp)];ok{
+	if _, ok := BlackList[baseUtil.IpToString(srcIp)]; ok {
 		tPool.blackIndex++
-		if tPool.blackIndex>500{
+		if tPool.blackIndex > 500 {
 			tPool.checkTimeout(packet.Metadata().Timestamp)
 			tPool.blackIndex = 0
 		}
 		return
-	}else if _,ok := BlackList[baseUtil.IpToString(dstIp)];ok{
+	} else if _, ok := BlackList[baseUtil.IpToString(dstIp)]; ok {
 		tPool.blackIndex++
-		if tPool.blackIndex>500{
+		if tPool.blackIndex > 500 {
 			tPool.checkTimeout(packet.Metadata().Timestamp)
 			tPool.blackIndex = 0
 		}
@@ -81,7 +82,6 @@ func (tPool *ConversationPool) DisposePacket(packet gopacket.Packet) {
 
 	//记录每个IP的时间，主要用于IP分片重组，记录第一个分片和最后一个分配到达时间
 	//通过IP数据包中，每个分片的ID是唯一标识的
-
 
 	ipRefraKey := IPRefragKey{
 		Id:    ipv4Layer.Id,
@@ -174,9 +174,9 @@ func (tPool *ConversationPool) addTCPPacket(tcp *layers.TCP,
 		}
 	}
 
-	if fiveTuple.SrcIP == [...]byte{192, 168, 122, 1} && fiveTuple.DstPort == 22 {
-		return
-	}
+	// if fiveTuple.SrcIP == [...]byte{192, 168, 122, 1} && fiveTuple.DstPort == 22 {
+	// 	return
+	// }
 
 	// log.Println(fiveTuple.SrcIP, "    conversationPool.go 167")
 
@@ -257,7 +257,7 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 	converHash := fiveTuple.FastHash()
 
 	service := GetICMPServiceType(icmp.TypeCode.Type(), icmp.TypeCode.Code())
-	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I{
+	if service != baseUtil.SRV_ECO_I && service != baseUtil.SRV_ECR_I {
 		icmpConversation := NewICMPConversation(tPool.resultChan)
 		_ = icmpConversation.AddPacket(icmp, msg)
 		icmpConversation.ExtractFeature()
@@ -265,38 +265,38 @@ func (tPool *ConversationPool) addICMPPacket(icmp layers.ICMPv4, msg ConnMsg) {
 	}
 
 	conversation, ok := tPool.ICMPList[converHash]
-	if ok{
-		if service == baseUtil.SRV_ECO_I {  //ICMP请求
+	if ok {
+		if service == baseUtil.SRV_ECO_I { //ICMP请求
 			conversation.ExtractFeature()
 
 			newIcmp := NewICMPConversation(tPool.resultChan)
-			newIcmp.AddPacket(icmp,msg)
+			newIcmp.AddPacket(icmp, msg)
 			tPool.mapQueue.Push(converHash)
 			tPool.ICMPList[converHash] = newIcmp
-		}else if service == baseUtil.SRV_ECR_I && !conversation.IsSameConversation(msg){//ICMP应答，但不是相同的会话
+		} else if service == baseUtil.SRV_ECR_I && !conversation.IsSameConversation(msg) { //ICMP应答，但不是相同的会话
 			conversation.ExtractFeature()
 			tPool.mapQueue.RemoveValue(converHash)
 			delete(tPool.ICMPList, converHash)
 
 			newIcmp := NewICMPConversation(tPool.resultChan)
-			newIcmp.AddPacket(icmp,msg)
+			newIcmp.AddPacket(icmp, msg)
 			newIcmp.ExtractFeature()
-		} else{//ICMP应答，且是相同的会话
-			finish := conversation.AddPacket(icmp,msg)
-			if finish{
+		} else { //ICMP应答，且是相同的会话
+			finish := conversation.AddPacket(icmp, msg)
+			if finish {
 				conversation.ExtractFeature()
 				tPool.mapQueue.RemoveValue(converHash)
-				delete(tPool.ICMPList,converHash)
+				delete(tPool.ICMPList, converHash)
 			}
 		}
-	}else{
+	} else {
 		newIcmp := NewICMPConversation(tPool.resultChan)
-		if service == baseUtil.SRV_ECO_I{ //ICMP请求
-			newIcmp.AddPacket(icmp,msg)
+		if service == baseUtil.SRV_ECO_I { //ICMP请求
+			newIcmp.AddPacket(icmp, msg)
 			tPool.mapQueue.Push(converHash)
 			tPool.ICMPList[converHash] = newIcmp
-		}else{ //ICMP应答
-			newIcmp.AddPacket(icmp,msg)
+		} else { //ICMP应答
+			newIcmp.AddPacket(icmp, msg)
 			newIcmp.ExtractFeature()
 		}
 	}
@@ -312,7 +312,7 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 		t, ok1 := tPool.TCPList[v]
 		u, ok2 := tPool.UDPList[v]
 		icmp, ok3 := tPool.ICMPList[v]
-		if ok1{
+		if ok1 {
 			interval := now.Sub(t.LastTime)
 			isTimeout := false
 			//如果连接超时，则将记录连接的key从队列中出队，
@@ -341,7 +341,7 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 				t.ExtractBaseFeature()
 				delete(tPool.TCPList, v)
 			}
-		}else if ok2{
+		} else if ok2 {
 			interval := now.Sub(u.LastTime)
 
 			if interval >= baseUtil.UdpTimeout {
@@ -349,14 +349,14 @@ func (tPool *ConversationPool) checkTimeout(now time.Time) {
 				u.ExtractBaseFeature()
 				delete(tPool.UDPList, v)
 			}
-		}else if ok3{
+		} else if ok3 {
 			interval := now.Sub(icmp.LastTime)
-			if interval >= baseUtil.IcmpTimeout{
+			if interval >= baseUtil.IcmpTimeout {
 				mapQueue.RemoveValue(v)
 				icmp.ExtractFeature()
 				delete(tPool.ICMPList, v)
 			}
-		}else{
+		} else {
 			mapQueue.RemoveValue(v)
 			log.Println("在时间队列中出现未知的连接Key ConversationPool.go 166")
 		}

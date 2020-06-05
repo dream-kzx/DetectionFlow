@@ -165,6 +165,7 @@ func PredictFLowInFeature(featureChan chan *flowFeature.FlowFeature) {
 		select {
 		case feature := <-featureChan:
 			//grpc调用机器学习算法，预测流量类型
+			log.Println("1111111111")
 			label := predictFlow.Predict(feature)
 
 			if WriteCsv {
