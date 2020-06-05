@@ -3,3 +3,8 @@
 
 /PredictFeature/CallPredict/__pycache__
 /PredictFeature/GenerateModel/__pycache__
+/ExtractFeature/vendor/
+/PredictFeature/CallPredict/build/
+/PredictFeature/build/
+/PredictFeature/dist/
+/PredictFeature/server.spec

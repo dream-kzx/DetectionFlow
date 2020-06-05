@@ -132,6 +132,7 @@ class PredictModel:
     def predict(self, feature):
         feature[0][1] = type.Protocol.Type[feature[0][1]]
         label = self.tree.predict(feature)
+        print(label)
         return label[0]
 
     def selectDepth(self, max_depth):

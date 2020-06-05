@@ -13,6 +13,7 @@ import time
 import CallPredict.flowFeature as flowFeature
 from GenerateModel.predict import PredictModel
 
+import warnings
 
 class PredictFlow():
     def predict(self, request, context):
@@ -40,4 +41,6 @@ def servers():
 
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
+    print("服务启动：")
     servers()

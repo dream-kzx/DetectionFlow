@@ -1,6 +1,7 @@
 package CallPredict
 
 import (
+	"FlowDetection/flowFeature"
 	"context"
 	"google.golang.org/grpc"
 	"log"
@@ -10,6 +11,29 @@ import (
 
 ////protoc --go_out=plugins=grpc:. service.proto
 
+func TestCall(t *testing.T){
+	predictFlow := NewPredictFlow(":50051")
+
+	feature := &flowFeature.FlowFeature{
+		TCPBaseFeature:    flowFeature.TCPBaseFeature{
+			Duration:               0,
+			ProtocolType:           "tcp",
+			Service:                0,
+			Flag:                   "KKK",
+			SrcBytes:               0,
+			DstBytes:               0,
+			Land:                   0,
+			WrongFragment:          0,
+			Urgent:                 0,
+		},
+		TimeFlowFeature:   flowFeature.TimeFlowFeature{},
+		HostFlowFeature:   flowFeature.HostFlowFeature{},
+	}
+
+	label := predictFlow.Predict(feature)
+	print(label)
+
+}
 
 func TestCallPredict(t *testing.T){
 	conn, err := grpc.Dial(":50051",grpc.WithInsecure(),
@@ -27,7 +51,7 @@ func TestCallPredict(t *testing.T){
 		Duration:               0,
 		ProtocolType:           "tcp",
 		Service:                0,
-		Flag:                   0,
+		Flag:                   "KKK",
 		SrcBytes:               0,
 		DstBytes:               0,
 		Land:                   0,

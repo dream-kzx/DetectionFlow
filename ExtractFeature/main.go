@@ -80,9 +80,18 @@ func startGUI() {
 			_ *astilectron.Menu, _ *astilectron.Tray, _ *astilectron.Menu) error {
 			manager.W = ws[0]
 			go func() {
+				count := 0
 				for flowResult := range resultToGUIChan {
 					manager.AddFlow(flowResult)
-					manager.SendHostMessage(flowResult.SrcIP)
+
+					hostMsg := manager.GetHost(flowResult.SrcIP)
+					if hostMsg.ConnNum>1000 && count >50{
+						manager.SendHostMessage(flowResult.SrcIP)
+						count = 0
+					}else if hostMsg.ConnNum<=1000{
+						manager.SendHostMessage(flowResult.SrcIP)
+					}
+					count++
 				}
 
 			}()

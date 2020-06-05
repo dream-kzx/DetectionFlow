@@ -58,7 +58,7 @@ func (manager *Manager) AddFlow(flow *FlowResult) {
 
 		abnormalNum := host.GetAbnormalNum()
 		// log.Println(abnormalNum)
-		if abnormalNum >1000 && *AutoFilter{
+		if abnormalNum >500 && *AutoFilter{
 
 			_, ok := manager.BlackList[key]
 			if !ok {
@@ -114,7 +114,6 @@ func (h HostResult) GetAbnormalNum() uint{
 }
 
 func (h *HostResult) add(flow *FlowResult) {
-	h.AttackType = flow.AttackType
 	h.ConnNum++
 	if flow.AttackType == "normal" {
 		h.normalNum++
@@ -123,6 +122,14 @@ func (h *HostResult) add(flow *FlowResult) {
 	}
 
 	h.AbnormalRate = float64(h.abnormalNum) / float64(h.ConnNum)
+
+	if h.AbnormalRate<0.8 && h.ConnNum<20{
+		h.AttackType = "normal"
+	}else if h.AbnormalRate>0.3 || h.abnormalNum>100{
+		h.AttackType = "attack"
+	}else{
+		h.AttackType = flow.AttackType
+	}
 }
 
 

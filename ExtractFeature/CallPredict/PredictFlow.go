@@ -26,17 +26,21 @@ func NewPredictFlow(address string) *PredictFlow {
 	}
 }
 
-func (p *PredictFlow) Predict(feature *flowFeature.FlowFeature) uint32 {
+func (p *PredictFlow) Predict(feature *flowFeature.FlowFeature) (label uint32) {
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Second)
 	defer cancel()
 	request := flowFeatureToRequest(feature)
-	label, err := p.client.Predict(ctx, request)
+	result, err := p.client.Predict(ctx, request)
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Println("could not greet:", err)
+		label=0
+		return
 	}
+
+	label = result.Label
 	// log.Printf("predict:%d", label.Label)
-	return label.Label
+	return
 }
 
 func (p *PredictFlow) close() {
